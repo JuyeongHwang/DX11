@@ -5,8 +5,9 @@
   - directX11 공부 & 간단한 게임 만들기
 #### 사용 버전 :visual studio 2019
 
-- new project > 데스크탑 위자드 
-
+- 프로젝트 생성 방법 :  new project > 데스크탑 위자드 
+#### 준비물 
+- https://www.microsoft.com/en-us/download/details.aspx?id=6812
 
 ## 개발 일지
 
@@ -18,6 +19,8 @@
   <오늘 알게 된 점><br>
     다이렉트x 공부를 위해 이것저것 코드를 읽다보니 wWinMain앞에 붙어 있는 무엇인가가 다 달랐다. 찾아보니 결국 이름만 다르고 같은 것들이었다.<br>
     callback == winapi == apientry
+### 2021.08.07
+  
 
 #### 📘📙📒참고자료
 
