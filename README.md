@@ -9,7 +9,7 @@
 #### 준비물 
 - https://www.microsoft.com/en-us/download/details.aspx?id=6812
 
-## [개발 일지](https://github.com/JuyeongHwang/DX11/blob/main/DevLog.md)
+#### [개발 일지](https://github.com/JuyeongHwang/DX11/blob/main/DevLog.md)
   
 
 #### 📘📙📒참고자료
