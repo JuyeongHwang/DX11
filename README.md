@@ -23,6 +23,6 @@
 [1] https://www.youtube.com/watch?v=NTvhVxSC_80 (DirectX 11 SDK Tutorial코드 설명) <br>
 [2] https://calcworkshop.com/vectors-and-the-geometry-of-space/cross-product-in-3d/ (cross-product) <br>
 [3] https://m.blog.naver.com/fs0608/221650925743 (SIMD 레지스터) <br>
-
+[4] http://soen.kr/lecture/win32api/lec2/lec2-2-2.htm (Win32 입문 강좌)<br>
 https://copynull.tistory.com/238?category=649932 , https://www.youtube.com/watch?v=NYQ1-XfopFw&list=PLcacUGyBsOIBlGyQQWzp6D1Xn6ZENx9Y2&index=3<br>
 http://www.directxtutorial.com/LessonList.aspx?listid=11 , 
