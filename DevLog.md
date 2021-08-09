@@ -18,3 +18,7 @@
   ![dx](https://user-images.githubusercontent.com/49023736/128650580-85dd1d33-02a5-44bd-a6ce-4b6153cd03c8.jpg) <br>
   
   1장을 읽고있는데 선형대수의 집합체였다. 
+
+
+  https://minok-portfolio.tistory.com/2?category=370780 <br>
+  구글링하다가 찾게 된 사이트인데 나도 같이 다렉 스터디 할 사람 있으면 좋겠다ㅜㅅㅜ 부럽
