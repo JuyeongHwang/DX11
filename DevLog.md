@@ -15,5 +15,8 @@
   오늘은 클래스와 
 
 ### 2021.08.09
-  ![dx](https://user-images.githubusercontent.com/49023736/128650580-85dd1d33-02a5-44bd-a6ce-4b6153cd03c8.jpg)
-  1장을 읽고있는데 선형대수의 집합체였다..
+  ![dx](https://user-images.githubusercontent.com/49023736/128650580-85dd1d33-02a5-44bd-a6ce-4b6153cd03c8.jpg) <br>
+  
+  1장을 읽고있는데 선형대수의 집합체였다. 쭉 읽어내리다, 외적 부분에서 막혔는데 내가 평소에 알고 있던 공식과 달랐기때문이다. <br>
+  분명 참고자료[2] 처럼 알고있었는데, y축과 관련된 식에서 반대로 되어있는 것이었다.<br>
+  근데 조금 생각해보니 나는 opengl을 하면서 cross product를 배웠었기 때문에 right-hand였고 directX는 left-hand 이기 때문에 y축이 반대로 되어있다는 것을 알 수 있었다!
