@@ -15,5 +15,5 @@
 #### 📘📙📒참고자료
 
 [0] https://ppparkje.tistory.com/12?category=489719 (빠재의 노트) <br>
-[1] https://www.youtube.com/watch?v=NTvhVxSC_80 (DirectX 11 SDK Tutorial코드 설명)
-[2] https://calcworkshop.com/vectors-and-the-geometry-of-space/cross-product-in-3d/ (right-hand cross-product)
+[1] https://www.youtube.com/watch?v=NTvhVxSC_80 (DirectX 11 SDK Tutorial코드 설명) <br>
+[2] https://calcworkshop.com/vectors-and-the-geometry-of-space/cross-product-in-3d/ (right-hand cross-product) <br>
