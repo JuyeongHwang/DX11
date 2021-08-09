@@ -23,3 +23,6 @@
 
   https://minok-portfolio.tistory.com/2?category=370780 <br>
   구글링하다가 찾게 된 사이트인데 나도 같이 다렉 스터디 할 사람 있으면 좋겠다ㅜㅅㅜ 부럽
+
+  https://hombody.tistory.com/11?category=846211
+  집가면서 읽어야징 
