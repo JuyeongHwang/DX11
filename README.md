@@ -17,3 +17,4 @@
 [0] https://ppparkje.tistory.com/12?category=489719 (빠재의 노트) <br>
 [1] https://www.youtube.com/watch?v=NTvhVxSC_80 (DirectX 11 SDK Tutorial코드 설명) <br>
 [2] https://calcworkshop.com/vectors-and-the-geometry-of-space/cross-product-in-3d/ (right-hand cross-product) <br>
+[3] https://m.blog.naver.com/fs0608/221650925743 (SIMD 레지스터)
