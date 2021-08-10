@@ -24,3 +24,9 @@
   구글링하다가 찾게 된 사이트인데 나도 같이 다렉 스터디 할 사람 있으면 좋겠다ㅜㅅㅜ 부럽
   https://hombody.tistory.com/11?category=846211
   2d 참고하기 좋을 것 같다.
+
+### 2021.08.10
+
+![image](https://user-images.githubusercontent.com/49023736/128795674-805808d6-0d63-48b4-a3a2-e75a57280504.png)
+
+? ; opengl과는 index 버퍼 순서가 반대인가???
