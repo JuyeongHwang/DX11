@@ -24,5 +24,6 @@
 [2] https://calcworkshop.com/vectors-and-the-geometry-of-space/cross-product-in-3d/ (cross-product) <br>
 [3] https://m.blog.naver.com/fs0608/221650925743 (SIMD 레지스터) <br>
 [4] http://soen.kr/lecture/win32api/lec2/lec2-2-2.htm (Win32 입문 강좌)<br>
+[5] https://docs.microsoft.com/ko-kr/windows/win32/direct3ddxgi/d3d10-graphics-programming-guide-dxgi?redirectedfrom=MSDN (DXGI doc)<br>
 https://copynull.tistory.com/238?category=649932 , https://www.youtube.com/watch?v=NYQ1-XfopFw&list=PLcacUGyBsOIBlGyQQWzp6D1Xn6ZENx9Y2&index=3<br>
 http://www.directxtutorial.com/LessonList.aspx?listid=11 , 
