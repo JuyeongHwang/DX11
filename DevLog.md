@@ -28,7 +28,7 @@
 ### 2021.08.10
 
 삼각형을 그렸다
-![title](https://user-images.githubusercontent.com/49023736/128795674-805808d6-0d63-48b4-a3a2-e75a57280504.png){ width: 200px; }
+<img src="https://user-images.githubusercontent.com/49023736/128795674-805808d6-0d63-48b4-a3a2-e75a57280504.png" width="200" height="200" />
 
 ? : opengl과는 index 버퍼 순서가 반대인가???<br>
 A : ㅇㅇ!(https://m.blog.naver.com/zxwnstn/222028734504)
