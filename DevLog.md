@@ -40,4 +40,5 @@ direct3D 개요. 코드를 짜다보니까 device, deviceContext, 윈도우 핸�
 https://m.blog.naver.com/masca140/220704230471 
 
 내일 할거
+https://m.blog.naver.com/atom723/190311655
 https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-dxgi
