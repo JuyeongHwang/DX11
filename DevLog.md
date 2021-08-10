@@ -37,6 +37,7 @@
 A : ㅇㅇ!(https://m.blog.naver.com/zxwnstn/222028734504)
 
 사각형을 그렸당
+ ![image](https://user-images.githubusercontent.com/49023736/128796130-5be70c61-6347-4977-b38f-f7331168e7b7.png)
 <div style="float:left;margin:0 10px 10px 0" markdown="3">
     ![image](https://user-images.githubusercontent.com/49023736/128796130-5be70c61-6347-4977-b38f-f7331168e7b7.png)
 </div>
