@@ -27,6 +27,12 @@
 
 ### 2021.08.10
 
+삼각형을 그렸다
 ![image](https://user-images.githubusercontent.com/49023736/128795674-805808d6-0d63-48b4-a3a2-e75a57280504.png)
 
 ? ; opengl과는 index 버퍼 순서가 반대인가???
+
+사각형을 그렸당
+![image](https://user-images.githubusercontent.com/49023736/128796130-5be70c61-6347-4977-b38f-f7331168e7b7.png)
+
+
