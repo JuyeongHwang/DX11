@@ -38,3 +38,6 @@ A : ㅇㅇ!(https://m.blog.naver.com/zxwnstn/222028734504)
 
 direct3D 개요. 코드를 짜다보니까 device, deviceContext, 윈도우 핸들 등 반복되는 단어가 계속 나오는데 어렴풋이 알고 이해하려니까 속이 너무 답답.. 잘 모르겠는 단어들 먼저 공부를 하고 코드 이해를 하는게 좋을 것 같다.
 https://m.blog.naver.com/masca140/220704230471 
+
+내일 할거
+https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-dxgi
