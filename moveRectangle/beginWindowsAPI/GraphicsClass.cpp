@@ -107,7 +107,7 @@ void GraphicsClass::Shutdown()
 bool GraphicsClass::Frame()
 {
 	// 그래픽 랜더링 처리
-	itrans += 0.001f;
+	itrans += 0.01f;
 	return Render();
 }
 
@@ -121,6 +121,7 @@ bool GraphicsClass::Render()
 
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
 
+	//물체 이동시키기
 	XMMATRIX translationMatrix(
 		1.0f, 0.0f, 0.0f, itrans,
 		0.0f, 1.0f, 0.0f, 0.0f,
@@ -129,13 +130,16 @@ bool GraphicsClass::Render()
 	);
 
 	m_Direct3D->GetWorldMatrix(worldMatrix);
+
+	//카메라 움직이기
+	m_Camera->SetPosition(itrans, 3.f, -5.f);
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	
 	m_Model->Render(m_Direct3D->GetDeviceContext());
 
 	if(!m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(),
-		worldMatrix*XMMatrixTranspose(translationMatrix),	viewMatrix, projectionMatrix)) { return false; }
+		worldMatrix * XMMatrixTranspose(translationMatrix),	viewMatrix , projectionMatrix )) { return false; }
 
 	// 버퍼의 내용을 화면에 출력합니다
 	m_Direct3D->EndScene();
