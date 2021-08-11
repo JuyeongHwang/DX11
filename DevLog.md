@@ -48,4 +48,6 @@ https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-dxgi
 카메라 & 큐브 점프 및 움직이기
 ![ezgif com-gif-maker](https://user-images.githubusercontent.com/49023736/128961176-46216515-b1b9-4398-b8f1-2442af54a443.gif)
 
-
+하루종일 texture만 했는데 알 수 없는 오류가 또 날 괴롭힌다.......
+https://www.braynzarsoft.net/viewtutorial/q16390-directx-11-an-introduction-to-the-win32-api
+이 예제도 한번 따라해봐야겠다 에휴
