@@ -11,10 +11,10 @@
 
 #### <준비물>
 
-- https://www.microsoft.com/en-us/download/details.aspx?id=6812
-
-![image](https://user-images.githubusercontent.com/49023736/128960214-f4ae8618-92b8-4c0e-a39e-ad8ee3277d03.png)
-![image](https://user-images.githubusercontent.com/49023736/128960375-d28841bc-9e5a-4748-a941-ee6ace0a8cc9.png)
+- https://www.microsoft.com/en-us/download/details.aspx?id=6812 <br>
+- 세팅 방법
+<img src="https://user-images.githubusercontent.com/49023736/128960214-f4ae8618-92b8-4c0e-a39e-ad8ee3277d03.png" width="30%" height="30%" />
+<img src="https://user-images.githubusercontent.com/49023736/128960375-d28841bc-9e5a-4748-a941-ee6ace0a8cc9.png" width="30%" height="30%" />
 
 
 #### <개발 일지> [링크](https://github.com/JuyeongHwang/DX11/blob/main/Info/DevLog.md)
