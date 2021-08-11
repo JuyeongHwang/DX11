@@ -27,13 +27,13 @@
 
 ### 2021.08.10
 
-삼각형을 그렸다
+삼각형을 그렸다<br>
 <img src="https://user-images.githubusercontent.com/49023736/128795674-805808d6-0d63-48b4-a3a2-e75a57280504.png" width="30%" height="30%" />
 
 ? : opengl과는 index 버퍼 순서가 반대인가???<br>
 A : ㅇㅇ!(https://m.blog.naver.com/zxwnstn/222028734504)
 
-사각형을 그렸당
+사각형을 그렸당<br>
 <img src="https://user-images.githubusercontent.com/49023736/128796130-5be70c61-6347-4977-b38f-f7331168e7b7.png" width="30%" height="30%" />
 
 direct3D 개요. 코드를 짜다보니까 device, deviceContext, 윈도우 핸들 등 반복되는 단어가 계속 나오는데 어렴풋이 알고 이해하려니까 속이 너무 답답.. 잘 모르겠는 단어들 먼저 공부를 하고 코드 이해를 하는게 좋을 것 같다.
@@ -45,7 +45,7 @@ https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-dxgi
 
 ### 2021.08.11
 
-카메라 & 큐브 점프 및 움직이기
+<b>카메라 & 큐브 점프 및 움직이기</b> <br>
 <img src="https://user-images.githubusercontent.com/49023736/128961176-46216515-b1b9-4398-b8f1-2442af54a443.gif" width="30%" height="30%" />
 
 <strike>하루종일 texture만 했는데 알 수 없는 오류가 또 날 괴롭힌다.......
