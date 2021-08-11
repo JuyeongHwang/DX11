@@ -49,5 +49,8 @@ https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-dxgi
 ![ezgif com-gif-maker](https://user-images.githubusercontent.com/49023736/128961176-46216515-b1b9-4398-b8f1-2442af54a443.gif)
 
 하루종일 texture만 했는데 알 수 없는 오류가 또 날 괴롭힌다.......
+어디서 나는건지 모르겠어서 디버깅해보니까 d3dcompilefromfile 쪽에서 나고있었다. https://gpgstudy.com/forum/viewtopic.php?t=25475 <- 이 사이트에서 참고해보니, 세번째 인자가 비면 error가 발생할 수도 있다고 해서 다른 방식으로도 해보았지만 여전히 안된다....<br>
+텍스쳐를 해야 라이팅을 하던 폰트를 하던 할텐데 ㅜㅜ <br>
+
 https://www.braynzarsoft.net/viewtutorial/q16390-directx-11-an-introduction-to-the-win32-api
 이 예제도 한번 따라해봐야겠다 에휴
