@@ -42,3 +42,10 @@ https://m.blog.naver.com/masca140/220704230471
 내일 할거
 https://m.blog.naver.com/atom723/190311655
 https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-dxgi
+
+### 2021.08.11
+
+카메라 & 큐브 점프 및 움직이기
+![ezgif com-gif-maker](https://user-images.githubusercontent.com/49023736/128961176-46216515-b1b9-4398-b8f1-2442af54a443.gif)
+
+
