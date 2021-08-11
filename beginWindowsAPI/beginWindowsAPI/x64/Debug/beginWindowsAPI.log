@@ -1,4 +1,0 @@
-﻿  ColorShaderClass.cpp
-C:\Users\jiwoo\source\repos\beginWindowsAPI\beginWindowsAPI\ColorShaderClass.cpp(23,64): error C2664: 'bool ColorShaderClass::InitializeShader(ID3D11Device *,HWND,WCHAR *,WCHAR *)': 인수 3을(를) 'const wchar_t [9]'에서 'WCHAR *'(으)로 변환할 수 없습니다.
-C:\Users\jiwoo\source\repos\beginWindowsAPI\beginWindowsAPI\ColorShaderClass.cpp(23,40): message : 문자열 리터럴로부터의 변환은 const 한정자가 손실됩니다(/Zc:strictStrings 참조).
-C:\Users\jiwoo\source\repos\beginWindowsAPI\beginWindowsAPI\colorshaderclass.h(23,7): message : 'ColorShaderClass::InitializeShader' 선언을 참조하십시오.
