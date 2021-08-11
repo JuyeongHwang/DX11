@@ -17,7 +17,7 @@
 ![image](https://user-images.githubusercontent.com/49023736/128960375-d28841bc-9e5a-4748-a941-ee6ace0a8cc9.png)
 
 
-#### <개발 일지> [링크](https://github.com/JuyeongHwang/DX11/blob/main/DevLog.md)
+#### <개발 일지> [링크](https://github.com/JuyeongHwang/DX11/blob/main/Info/DevLog.md)
 
 
 #### 참고 도서
