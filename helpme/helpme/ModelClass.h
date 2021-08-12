@@ -2,7 +2,7 @@
 
 class TextureClass;
 
-class ModelClass : public AlignedAllocationPolicy<16>
+class ModelClass
 {
 private:
 	struct VertexType

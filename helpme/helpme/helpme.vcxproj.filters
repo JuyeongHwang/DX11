@@ -85,11 +85,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="stone01.tga">
-      <Filter>소스 파일</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="texture.ps">
       <Filter>소스 파일</Filter>
     </None>

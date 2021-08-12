@@ -109,6 +109,9 @@ bool SystemClass::Frame()
 		return false;
 	}
 
+	else if (m_Input->IsKeyDown(VK_SPACE)) {
+		m_Graphics->isSpace = m_Input->IsKeyDown(VK_SPACE);
+	}
 	// 그래픽 객체의 Frame을 처리합니다
 	return m_Graphics->Frame();
 }
@@ -205,9 +208,9 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 		posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
 	}
 
-	// 윈도우를 생성하고 핸들을 구합니다.
+	// 윈도우를 생성하고 핸들을 구합니다. WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP
 	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW, m_applicationName, m_applicationName,
-		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+		WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
 		posX, posY, screenWidth, screenHeight, NULL, NULL, m_hinstance, NULL);
 
 	// 윈도우를 화면에 표시하고 포커스를 지정합니다

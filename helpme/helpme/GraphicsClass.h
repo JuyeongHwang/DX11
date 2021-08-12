@@ -28,9 +28,14 @@ public:
 private:
 	bool Render();
 
+public:
+	bool isSpace = false;
 private:
 	D3DClass* m_Direct3D = nullptr;
 	CameraClass* m_Camera = nullptr;
 	ModelClass* m_Model = nullptr;
 	TextureShaderClass* m_TextureShader = nullptr;
+
+	float itrans = 0;
+	float ijump = 0;
 };

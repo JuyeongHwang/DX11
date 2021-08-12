@@ -1,6 +1,6 @@
 #pragma once
 
-class CameraClass : public AlignedAllocationPolicy<16>
+class CameraClass 
 {
 public:
 	CameraClass();

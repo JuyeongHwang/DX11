@@ -45,9 +45,6 @@
     <ClCompile Include="textureshaderclass.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="stone01.tga" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="texture.ps" />
     <None Include="texture.vs" />
   </ItemGroup>

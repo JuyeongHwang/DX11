@@ -45,7 +45,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// 카메라 포지션 설정
-	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+	m_Camera->SetPosition(0.0f, 1.0f, -10.0f);
 
 	// m_Model 객체 생성
 	m_Model = new ModelClass;
@@ -55,7 +55,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// m_Model 객체 초기화
-	if (!m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), (char*)"stone01.tga"))
+	if (!m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), (char*)"toppng.tga"))
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
 		return false;
@@ -116,6 +116,7 @@ void GraphicsClass::Shutdown()
 
 bool GraphicsClass::Frame()
 {
+	
 	// 그래픽 랜더링 처리
 	return Render();
 }
@@ -124,7 +125,7 @@ bool GraphicsClass::Frame()
 bool GraphicsClass::Render()
 {
 	// 씬을 그리기 위해 버퍼를 지웁니다
-	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+	m_Direct3D->BeginScene(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// 카메라의 위치에 따라 뷰 행렬을 생성합니다
 	m_Camera->Render();
@@ -138,8 +139,34 @@ bool GraphicsClass::Render()
 	// 모델 버텍스와 인덱스 버퍼를 그래픽 파이프 라인에 배치하여 드로잉을 준비합니다.
 	m_Model->Render(m_Direct3D->GetDeviceContext());
 
+
+	itrans += 0.02f;
+	XMMATRIX translationMatrix(
+		1.0f, 0.0f, 0.0f, itrans,
+		0.0f, 1.0f, 0.0f, ijump,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	);
+
+	if (isSpace) {
+		//뛰기
+
+		ijump += 0.08f;
+		if (ijump >= 0.8f) {
+			isSpace = false;
+		}
+	}
+	else {
+		if (ijump > 0) {
+			ijump -= 0.08f;
+		}
+	}
+
+	m_Camera->SetPosition(itrans, 1, -15.f);
+
 	// 텍스쳐 쉐이더를 사용하여 모델을 렌더링합니다.
-	if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture()))
+	if (!m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), 
+		worldMatrix * XMMatrixTranspose(translationMatrix), viewMatrix, projectionMatrix, m_Model->GetTexture()))
 	{
 		return false;
 	}

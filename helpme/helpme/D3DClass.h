@@ -1,6 +1,6 @@
 #pragma once
 
-class D3DClass : public AlignedAllocationPolicy<16>
+class D3DClass 
 {
 public:
 	D3DClass();
