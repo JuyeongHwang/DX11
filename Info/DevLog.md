@@ -57,3 +57,12 @@ https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-dxgi
 
 https://www.braynzarsoft.net/viewtutorial/q16390-directx-11-an-introduction-to-the-win32-api
 이 예제도 한번 따라해봐야겠다 에휴
+
+### 2021.08.12
+
+<b>텍스쳐 입히기</b> <br>
+
+
+https://user-images.githubusercontent.com/49023736/129129691-ac31f730-9d05-4d87-a171-17c7f9e03583.mp4
+
+
