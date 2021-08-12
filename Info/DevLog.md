@@ -66,3 +66,7 @@ https://www.braynzarsoft.net/viewtutorial/q16390-directx-11-an-introduction-to-t
 https://user-images.githubusercontent.com/49023736/129129691-ac31f730-9d05-4d87-a171-17c7f9e03583.mp4
 
 어찌저찌 하긴 했는데 솔직히 잘 이해 안된다,,,,,..
+
+<오늘의 실수 포인트>
+ - window 먼저 Initialization 하고, direct3d를 Initialization해줘야하는데 순서를 바꿔가지고 한참 걸렸다; ㅜ
+ - 과연 내가 원하는 설정으로 바꿔서 사용할 수 있을지 의문이다..
