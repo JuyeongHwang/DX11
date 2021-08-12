@@ -1,6 +1,7 @@
 ## 화면 실행에서 종료까지 최소한의 틀
 ### visual studio 2019 
 
+~~~
 
 // Windows 헤더 파일:
 #include <windows.h>
@@ -187,4 +188,4 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-
+~~~
