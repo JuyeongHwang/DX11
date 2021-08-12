@@ -1,6 +1,7 @@
 ## 화면 실행에서 종료까지 최소한의 틀
 
 targetVer.h
+
 '''c++
 #pragma once
 // SDKDDKVer.h를 포함하면 최고 수준의 가용성을 가진 Windows 플랫폼이 정의됩니다.
@@ -355,6 +356,7 @@ private:
 	'''
 	
 	InputClass.cpp
+	
 	'''c++
 	#include "InputClass.h"
 
