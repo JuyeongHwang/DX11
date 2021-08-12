@@ -65,4 +65,4 @@ https://www.braynzarsoft.net/viewtutorial/q16390-directx-11-an-introduction-to-t
 
 https://user-images.githubusercontent.com/49023736/129129691-ac31f730-9d05-4d87-a171-17c7f9e03583.mp4
 
-
+어찌저찌 하긴 했는데 솔직히 잘 이해 안된다,,,,,..
