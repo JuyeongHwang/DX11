@@ -73,3 +73,11 @@ https://user-images.githubusercontent.com/49023736/129129691-ac31f730-9d05-4d87-
 
 위에 예제 사이트가 훨씬 이해하기 쉬웠다. 코드가 길어지면, 당연히 [0]보다는 가독성은 떨어지겠지만 처음 공부하는 입장에서 보면, 진행 과정을 따라 쭉 나열하고 있기 때문에 순서를 파악하기 좋았다!
 그리고 개인적으로 느낀점인데 directX가 어려운 이유는 대충 깔짝이면서 공부하는건 불가능하기 때문이 아닐까..싶다 학교에서 opengl도 안배운 상태였다면 진작에 그만 뒀을것같다.
+
+### 2021.08.13
+
+<img src="https://user-images.githubusercontent.com/49023736/129367389-7ed74fea-85fd-4852-89f4-ec10eaa56d5d.png" width="50%" height="40%" />
+
+info/draw_rectanlge(projectionXX) 에 있는 코드의 흐름을 따라가보면 위와 같다.
+
+
