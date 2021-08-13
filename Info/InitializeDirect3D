@@ -69,13 +69,6 @@ using namespace DirectX;
 const int Width = 800;
 const int Height = 600;
 
-~~~
-
-
-## 전체 코드
-
-~~~
-
 class D3DClass;
 class SystemClass {
 public:
