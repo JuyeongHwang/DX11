@@ -81,3 +81,17 @@ https://user-images.githubusercontent.com/49023736/129129691-ac31f730-9d05-4d87-
 info/draw_rectanlge(projectionXX) 에 있는 코드의 흐름을 따라가보면 위와 같다.
 
 
+-----------------
+
+	VertexType vt;
+	D3D11_INPUT_ELEMENT_DESC Playout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, sizeof(vt.pos), D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+
+** 정점 하나 기준
+Playout[4]를 보면, position이 어디서부터 시작할 것인지를 물어보는 것이다. 현재 position같은 경우 XMFLOAT3을 이용하고 있기 때문에 
+4*3, 총 12바이트를 사용한다. 그렇기 때문에 COLOR은 12바이트 뒤에서부터 할당되어야 한다. 
+D3D11_APPEND_ALIGNED_ELEMENT<=를 이용해서 자동으로 할당할수도 있다고 한다. 
+아니면 저렇게 구조체를 가져와서, 앞에 사용한 것들의 바이트를 직접 계산하는 방식으로도 할 수 있다.
