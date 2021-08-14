@@ -17,12 +17,12 @@
   
 
 ### 2021.08.09
-  ![dx](https://user-images.githubusercontent.com/49023736/128650580-85dd1d33-02a5-44bd-a6ce-4b6153cd03c8.jpg) <br>
-  
-  1장을 읽고있는데 선형대수의 집합체였다.. 5장 렌더링 파이프까지 봤는데 기본적인 개념을 정립하기는 좋았지만 directx12라 계속 봐야할지 고민이다<
 
+<img src="https://user-images.githubusercontent.com/49023736/128650580-85dd1d33-02a5-44bd-a6ce-4b6153cd03c8.jpg" width="30%" height="30%" />
+  1장을 읽고있는데 선형대수의 집합체였다.. 5장 렌더링 파이프까지 봤는데 기본적인 개념을 정립하기는 좋았지만 directx12라 계속 봐야할지 고민이다
+  
   https://minok-portfolio.tistory.com/2?category=370780 <br>
-  구글링하다가 찾게 된 사이트인데 나도 같이 다렉 스터디 할 사람 있으면 좋겠다ㅜㅅㅜ 부럽
+  구글링하다가 찾게 된 사이트.
   https://hombody.tistory.com/11?category=846211
   2d 참고하기 좋을 것 같다.
 
@@ -52,17 +52,14 @@ https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-dxgi
 <strike>하루종일 texture만 했는데 알 수 없는 오류가 또 날 괴롭힌다.......
 어디서 나는건지 모르겠어서 디버깅해보니까 d3dcompilefromfile 쪽에서 나고있었다. https://gpgstudy.com/forum/viewtopic.php?t=25475 <- 이 사이트에서 참고해보니, 세번째 인자가 비면 error가 발생할 수도 있다고 해서 다른 방식으로도 해보았지만 여전히 안된다....<br>
 텍스쳐를 해야 라이팅을 하던 폰트를 하던 할텐데 ㅜㅜ</strike> <br>
-
 텍스쳐 해결!! WCHAR 캐스팅을 잘못하고 있던 모양이다....(WCHAR*)L"hlsl파일명" 이런식으로 해주면 된당! ㅎㅅㅎ<br>
 
 https://www.braynzarsoft.net/viewtutorial/q16390-directx-11-an-introduction-to-the-win32-api
-이 예제도 한번 따라해봐야겠다 에휴
+이 예제도 한번 따라해봐야겠다
 
 ### 2021.08.12
 
 <b>텍스쳐 입히기</b> <br>
-
-
 https://user-images.githubusercontent.com/49023736/129129691-ac31f730-9d05-4d87-a171-17c7f9e03583.mp4
 
 어찌저찌 하긴 했는데 솔직히 잘 이해 안된다,,,,,..
@@ -79,7 +76,6 @@ https://user-images.githubusercontent.com/49023736/129129691-ac31f730-9d05-4d87-
 <img src="https://user-images.githubusercontent.com/49023736/129440608-ece2b778-29bd-4263-a2d5-427a8203bf96.png" width="50%" height="40%" />
 
 info/draw_rectanlge(projectionXX) 에 있는 코드의 흐름을 따라가보면 위와 같다.
-
 
 -----------------
 
@@ -108,3 +104,4 @@ D3D11_APPEND_ALIGNED_ELEMENT<=를 이용해서 자동으로 할당할수도 있�
 
 ![image](https://user-images.githubusercontent.com/49023736/129452030-66edead9-e4b4-4057-98ae-7bd79239547f.png)
 
+이걸 한번에 이해하는 천재들이 부럽다..
