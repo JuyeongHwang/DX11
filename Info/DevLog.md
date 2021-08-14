@@ -76,7 +76,7 @@ https://user-images.githubusercontent.com/49023736/129129691-ac31f730-9d05-4d87-
 
 ### 2021.08.13
 
-<img src="https://user-images.githubusercontent.com/49023736/129367389-7ed74fea-85fd-4852-89f4-ec10eaa56d5d.png" width="50%" height="40%" />
+<img src="https://user-images.githubusercontent.com/49023736/129440608-ece2b778-29bd-4263-a2d5-427a8203bf96.png" width="50%" height="40%" />
 
 info/draw_rectanlge(projectionXX) 에 있는 코드의 흐름을 따라가보면 위와 같다.
 
@@ -95,3 +95,9 @@ Playout[n]에 5번째 파라미터를 보면, position이 어디서부터 시작
 4*3, 총 12바이트를 사용한다. 그렇기 때문에 COLOR은 12바이트 뒤에서부터 할당되어야 한다. 
 D3D11_APPEND_ALIGNED_ELEMENT<=를 이용해서 자동으로 할당할수도 있다고 한다. 
 아니면 저렇게 구조체를 가져와서, 앞에 사용한 것들의 바이트를 직접 계산하는 방식으로도 할 수 있다.
+
+데이터 구조가 하나 늘어날때마다 
+
+<img src="https://user-images.githubusercontent.com/49023736/129440611-39637f64-04e3-4fa4-8b9a-d578043ed7ae.png" width="50%" height="40%" />
+
+
