@@ -49,43 +49,39 @@ LPCTSTR WndClassName = L"firstWindow";
 HWND hwnd = NULL;
 
 
-
 // **** shader **** //
 bool InitializeShader();
 
+D3D11_INPUT_ELEMENT_DESC Playout[] =
+{
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+};
+unsigned int numElements = ARRAYSIZE(Playout);
 
 // *** model *** ///
 
 struct VertexType {
 	VertexType() {} //기본 생성자. 없으면 오류난다.
 	VertexType(float x, float y, float z,
-		float r, float g, float b, float a) 
-		: pos(x, y, z), color(r,g,b,a) {}
+		float r, float g, float b, float a)
+		: pos(x, y, z), color(r, g, b, a) {}
 
 	XMFLOAT3 pos;
 	XMFLOAT4 color;
 };
 
-bool InitializePlayer();
-bool InitializeplayerBuffers();
 
 // *** direct3D *** ///
 bool InitializeDirect3d11App(HINSTANCE hInstance);
 void ReleaseObjects();
-bool InitScene();
+
 void UpdateScene();
 void DrawScene();
 
 // *** window *** ///
 bool InitializeWindow(HINSTANCE hInstance, int ShowWnd, int width, int height, bool windowed);
-int messageloop();//프로그램이 돌아갈 곳.
-
-
-
-
-
-// window callback procedure도 설정해줘야함.
-// 윈도우의 메세지를 처리하는 곳입니다
+int messageloop();
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lParam);
 
 
@@ -104,16 +100,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
-	if (!InitializePlayer()) {
-		MessageBox(0, L"Player Model Initialization - Failed", L"Error", MB_OK);
-		return 0;
-	}
-
 	if (!InitializeShader()) {
 		MessageBox(hwnd, L"Could not initialize the shader object.", L"Error", MB_OK);
 		return false;
 	}
 
+	//loop
 	messageloop();
 
 	ReleaseObjects();
@@ -122,118 +114,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 }
 
 
-
-
-
 ////////// ********************************************** ////////////////
 
 
 bool InitializeShader() {
-
 	HRESULT result;
 	ID3D10Blob* errorMessage;
 	ID3D10Blob* vertexShaderBuffer;
 	ID3D10Blob* pixelShaderBuffer;
-
-	// Initialize the pointers this function will use to null.
-	errorMessage = 0;
-	vertexShaderBuffer = 0;
-	pixelShaderBuffer = 0;
-
-	// Compile the vertex shader code.
-	D3DCompileFromFile(L"vertexShader.vs", NULL, NULL, "VS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
-		&vertexShaderBuffer, &errorMessage);
-
-	D3DCompileFromFile(L"pixelShader.ps", NULL, NULL, "PS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
-		&pixelShaderBuffer, &errorMessage);
-
-
-	// Create the vertex shader from the buffer.
-	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &vertexShader);
-	if (FAILED(result))
-	{
-		MessageBox(hwnd, L"Could not create the vertex shader object.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Create the pixel shader from the buffer.
-	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &pixelShader);
-	if (FAILED(result))
-	{
-		MessageBox(hwnd, L"Could not create the pixel shader object.", L"Error", MB_OK);
-		return false;
-	}
-
-	D3D11_INPUT_ELEMENT_DESC Playout[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-	};
-
-	unsigned int numElements = sizeof(Playout) / sizeof(Playout[0]);
-
-	// Create the vertex input layout.
-	result = device->CreateInputLayout(Playout , numElements, vertexShaderBuffer->GetBufferPointer(),vertexShaderBuffer->GetBufferSize(), &layout);
-	if (FAILED(result))
-	{
-		MessageBox(hwnd, L"Could not create the layout object.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	vertexShaderBuffer->Release();
-	vertexShaderBuffer = 0;
-
-	pixelShaderBuffer->Release();
-	pixelShaderBuffer = 0;
-
-	return true;
-
-}
-
-
-
-bool InitializePlayer() {
-	if (!InitializeplayerBuffers()) {
-		MessageBox(0, L"Buffer Initialization - Failed", L"Error", MB_OK);
-		return false;
-	}
-
-	return true;
-}
-
-void RenderplayerBuffers() {
-	// 정점 버퍼의 단위와 오프셋을 설정합니다.
-	UINT stride = sizeof(VertexType);
-	UINT offset = 0;
-
-	// 렌더링 할 수 있도록 입력 어셈블러에서 정점 버퍼를 활성으로 설정합니다.
-	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-
-	// 렌더링 할 수 있도록 입력 어셈블러에서 인덱스 버퍼를 활성으로 설정합니다.
-	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-	// 정점 버퍼로 그릴 기본형을 설정합니다. 여기서는 삼각형으로 설정합니다.
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-}
-
-void RenderShader() {
-	// Set the vertex input layout.
-	deviceContext->IASetInputLayout(layout);
-
-	// Set the vertex and pixel shaders that will be used to render this triangle.
-	deviceContext->VSSetShader(vertexShader, NULL, 0);
-	deviceContext->PSSetShader(pixelShader, NULL, 0);
-
-	// Set the sampler state in the pixel shader.
-	//deviceContext->PSSetSamplers(0, 1, &sampleState);
-
-	// Render the triangle.
-	deviceContext->DrawIndexed(indexCount, 0, 0);
-}
-
-bool InitializeplayerBuffers() {
 
 
 	vertexCount = 4;
@@ -255,17 +143,16 @@ bool InitializeplayerBuffers() {
 		MessageBox(0, L"creaet indices - Failed", L"Error", MB_OK);
 		return false;
 	}
-	//간단하게 안되나?
-	
+
 	// 인덱스 배열에 값을 설정합니다.
 	indices[0] = 0;  // Bottom left.
 	indices[1] = 1;  // Top left.
 	indices[2] = 2;  // Bottom right.
-	
+
 	indices[3] = 3; //Top right
 	indices[4] = 2; //bottom right
 	indices[5] = 1; //Top left
-	
+
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexBufferDesc.ByteWidth = sizeof(VertexType) * vertexCount;
@@ -309,13 +196,72 @@ bool InitializeplayerBuffers() {
 	}
 
 	// 생성되고 값이 할당된 정점 버퍼와 인덱스 버퍼를 해제합니다.
-	
+
 	delete[] indices;
 	indices = 0;
 
-	return true;
-}
 
+	// Initialize the pointers this function will use to null.
+	errorMessage = 0;
+	vertexShaderBuffer = 0;
+	pixelShaderBuffer = 0;
+
+	// Compile the vertex shader code.
+	D3DCompileFromFile(L"vertexShader.vs", NULL, NULL, "VS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+		&vertexShaderBuffer, &errorMessage);
+
+	D3DCompileFromFile(L"pixelShader.ps", NULL, NULL, "PS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+		&pixelShaderBuffer, &errorMessage);
+
+
+	// Create the vertex shader from the buffer.
+	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &vertexShader);
+	if (FAILED(result))
+	{
+		MessageBox(hwnd, L"Could not create the vertex shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the pixel shader from the buffer.
+	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &pixelShader);
+	if (FAILED(result))
+	{
+		MessageBox(hwnd, L"Could not create the pixel shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+
+
+	
+	// Create the vertex input layout.
+	result = device->CreateInputLayout(Playout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &layout);
+	if (FAILED(result))
+	{
+		MessageBox(hwnd, L"Could not create the layout object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+	vertexShaderBuffer->Release();
+	vertexShaderBuffer = 0;
+
+	pixelShaderBuffer->Release();
+	pixelShaderBuffer = 0;
+
+	UINT stride = sizeof(VertexType);
+	UINT offset = 0;
+
+	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	deviceContext->IASetInputLayout(layout);
+	deviceContext->VSSetShader(vertexShader, NULL, 0);
+	deviceContext->PSSetShader(pixelShader, NULL, 0);
+
+	return true;
+
+}
 
 
 bool InitializeDirect3d11App(HINSTANCE hInstance) {
@@ -409,11 +355,6 @@ void ReleaseObjects() {
 	layout->Release();
 
 }
-bool InitScene() {
-	HRESULT hr;
-
-	return true;
-}
 
 //화면 프레임
 void UpdateScene() {
@@ -422,29 +363,15 @@ void UpdateScene() {
 
 	deviceContext->ClearRenderTargetView(renderTargetView, bgColor);
 
-	RenderplayerBuffers();
-	RenderShader();
-	
+	deviceContext->DrawIndexed(indexCount, 0, 0);
+
 }
 
 void DrawScene() {
 
-	/*
-	if (m_vsync_enabled)
-	{
-		// 화면 새로 고침 비율을 고정합니다.
-		swapChain->Present(1, 0);
-	}
-	else
-	{
-		// 가능한 빠르게 출력합니다
-
-	}
-	*/
 	swapChain->Present(0, 0);
 
 }
-
 
 //// **********  시스템 클래스 ********** ////
 bool InitializeWindow(HINSTANCE hInstance, int ShowWnd, int width, int height, bool windowed) {
