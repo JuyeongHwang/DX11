@@ -100,4 +100,11 @@ D3D11_APPEND_ALIGNED_ELEMENT<=를 이용해서 자동으로 할당할수도 있�
 
 <img src="https://user-images.githubusercontent.com/49023736/129440611-39637f64-04e3-4fa4-8b9a-d578043ed7ae.png" width="50%" height="40%" />
 
+----------------------------------------------------------
+
+### 2021.08.14-15
+
+화면 생성부터 물체 이동까지
+
+![image](https://user-images.githubusercontent.com/49023736/129452030-66edead9-e4b4-4057-98ae-7bd79239547f.png)
 
