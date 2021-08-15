@@ -1,3 +1,5 @@
+~~~
+
 #include "pch.h"
 
 //*** 전역변수 ***//
@@ -581,3 +583,4 @@ float4 PS(VS_OUTPUT input) : SV_TARGET
 {
     return input.Color;
 }
+~~~
