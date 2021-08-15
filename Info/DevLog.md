@@ -105,3 +105,8 @@ D3D11_APPEND_ALIGNED_ELEMENT<=를 이용해서 자동으로 할당할수도 있�
 ![image](https://user-images.githubusercontent.com/49023736/129452030-66edead9-e4b4-4057-98ae-7bd79239547f.png)
 
 이걸 한번에 이해하는 천재들이 부럽다..
+
+큐브 점프 & 카메라 이동
+
+![녹화_2021_08_15_11_54_37_642](https://user-images.githubusercontent.com/49023736/129465469-d18966ff-5d33-43b5-8220-4128f94f4d04.gif)
+
