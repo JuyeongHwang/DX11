@@ -1,4 +1,6 @@
 
+
+
 ## <The Blending Equation>
 
 Direct3D에서 투명도의 구현을 위해 렌더 타겟에 있는 투명한 프리미티브 뒤에 있는 픽셀을 가지고 와,
@@ -75,7 +77,7 @@ typedef struct D3D11_RENDER_TARGET_BLEND_DESC {
 } D3D11_RENDER_TARGET_BLEND_DESC;
 
 
-## <Transparent Object's Depth Order.>
+## <Transparent Object's Depth Order>
 
  투명한 물체 뒤에 있는 것을 볼 때, 또는 여러 투명 물체가 씬에 있을 때 다뤄야 하는 문제점에 대해 설명합니다.<br>
 
