@@ -1,0 +1,16 @@
+﻿  main.cpp
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(201,31): warning C4101: 'end_counter' :참조되지 않은 지역 변수입니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(201,49): warning C4101: 'ms' :참조되지 않은 지역 변수입니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(201,44): warning C4101: 'fps' :참조되지 않은 지역 변수입니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(777,2): warning C4267: '인수': 'size_t'에서 'UINT32'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(940,15): warning C4244: '=': 'float'에서 '__int64'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(1006,20): warning C4244: '+=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(1008,19): warning C4244: '+=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(1016,24): warning C4244: '+=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(1017,24): warning C4244: '+=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(1020,24): warning C4244: '-=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(1021,24): warning C4244: '+=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(1024,25): warning C4244: '+=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(1186,12): warning C4244: 'return': 'WPARAM'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jiwoo\source\repos\geo\geo\main.cpp(909): warning C4715: 'InitializeTexture': 모든 제어 경로에서 값을 반환하지는 않습니다.
+  geo.vcxproj -> C:\Users\jiwoo\source\repos\geo\x64\Debug\geo.exe
