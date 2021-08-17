@@ -1,3 +1,4 @@
+
 ## <The Blending Equation>
 
 Direct3D에서 투명도의 구현을 위해 렌더 타겟에 있는 투명한 프리미티브 뒤에 있는 픽셀을 가지고 와,
