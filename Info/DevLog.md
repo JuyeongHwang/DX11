@@ -1,5 +1,6 @@
 
 
+
 https://user-images.githubusercontent.com/49023736/129855157-9e20eae0-2b89-4e80-b9de-618029826a3d.mp4
 
 
@@ -138,12 +139,11 @@ RT와 TR의 중요성..ㅋㅋㅋㅋ
 
 
 <img src="
-https://user-images.githubusercontent.com/49023736/129854929-f1a84d6a-d2f3-4220-9cb3-294c4bbbb799.mp4
+https://user-images.githubusercontent.com/49023736/129855360-cfd491b3-87e9-4a7d-b4f0-805ed018498a.gif
 " width="50%" height="40%" />
 
 
 <img src="
-https://user-images.githubusercontent.com/49023736/129855180-fdea5778-9bc5-49d7-95c1-55bd9541a99b.mp4
+https://user-images.githubusercontent.com/49023736/129855365-7c1b975e-23c3-47ad-98f8-cff2909b55df.gif)
 " width="50%" height="40%" />
-
 
