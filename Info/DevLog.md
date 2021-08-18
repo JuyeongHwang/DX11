@@ -1,4 +1,8 @@
 
+
+https://user-images.githubusercontent.com/49023736/129855157-9e20eae0-2b89-4e80-b9de-618029826a3d.mp4
+
+
 ## 개발일지
 
 ### 2021.08.06
@@ -137,12 +141,9 @@ RT와 TR의 중요성..ㅋㅋㅋㅋ
 https://user-images.githubusercontent.com/49023736/129854929-f1a84d6a-d2f3-4220-9cb3-294c4bbbb799.mp4
 " width="50%" height="40%" />
 
+
 <img src="
-https://user-images.githubusercontent.com/49023736/129854936-e2f3a628-4c19-493a-abf8-bae087cc8be5.mp4
-	  " width="50%" height="40%" />
-
-
-
-
+https://user-images.githubusercontent.com/49023736/129855180-fdea5778-9bc5-49d7-95c1-55bd9541a99b.mp4
+" width="50%" height="40%" />
 
 
