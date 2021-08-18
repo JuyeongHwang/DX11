@@ -137,7 +137,9 @@ RT와 TR의 중요성..ㅋㅋㅋㅋ
 https://user-images.githubusercontent.com/49023736/129854929-f1a84d6a-d2f3-4220-9cb3-294c4bbbb799.mp4
 " width="50%" height="40%" />
 
-<img src="https://user-images.githubusercontent.com/49023736/129854936-e2f3a628-4c19-493a-abf8-bae087cc8be5.mp4" width="50%" height="40%" />
+<img src="
+https://user-images.githubusercontent.com/49023736/129854936-e2f3a628-4c19-493a-abf8-bae087cc8be5.mp4
+	  " width="50%" height="40%" />
 
 
 
