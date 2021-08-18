@@ -135,3 +135,6 @@ RT와 TR의 중요성..ㅋㅋㅋㅋ
 ![ezgif com-gif-maker (3)](https://user-images.githubusercontent.com/49023736/129855460-122fc8dc-d110-4f68-9c0c-18746db0a4d5.gif)
 
 
+와..난 지금까지 rotation이랑 transform 순서만 조심하면 되는줄알았는데 scale도 조심해야한다;;;; 이것때매 한참 해맸네!
+Rotation * Scale * Translation ;
+
