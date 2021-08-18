@@ -1,30 +1,5 @@
-﻿//delta time 추가하기
-//class로 나누기
-
+﻿
 #include "pch.h"
-
-// =====================BACKGROUND==========================
-
-// **** shader **** //
-bool InitializebgShader();
-
-
-// *** model *** ///
-
-struct VertexType {
-	VertexType() {} //기본 생성자. 없으면 오류난다.
-	VertexType(float x, float y, float z) : pos(x, y, z) {}
-
-	XMFLOAT3 pos;
-};
-
-
-bool InitializebgBuffers();
-
-bool InitializeBG();
-
-
-void shutDownBG();
 
 // =====================CUBU===========================
 struct TargaHeader
@@ -90,24 +65,6 @@ ID3D11Buffer* d2dIndexBuffer;
 ID3D11ShaderResourceView* d2dTexture;
 IDWriteFactory* DWriteFactory;
 IDWriteTextFormat* TextFormat;
-
-
-IDirectInputDevice8* DIKeyboard;
-IDirectInputDevice8* DIMouse;
-
-DIMOUSESTATE mouseLastState;
-LPDIRECTINPUT8 DirectInput;
-
-float rotx = 0;
-float rotz = 0;
-float scaleX = 1.0f;
-float scaleY = 1.0f;
-
-XMMATRIX Rotationx;
-XMMATRIX Rotationz;
-
-bool InitDirectInput(HINSTANCE hInstance);
-void DetectInput(double time);
 
 //************
 
@@ -234,11 +191,6 @@ int WINAPI WinMain(HINSTANCE hInstance,	//Main windows function
 			L"Error", MB_OK);
 		return 0;
 	}
-	if (!InitializeBG()) {
-		MessageBox(0, L"InitializeBG - Failed",
-			L"Error", MB_OK);
-		return 0;
-	}
 	if (!InitScene())	//Initialize our scene
 	{
 		MessageBox(0, L"Scene Initialization - Failed",
@@ -252,162 +204,8 @@ int WINAPI WinMain(HINSTANCE hInstance,	//Main windows function
 	messageloop();
 
 	CleanUp();
-	shutDownBG();
 
 	return 0;
-}
-
-
-ID3D11Buffer* vertexBuffer = nullptr;
-ID3D11Buffer* indexBuffer = nullptr;
-ID3D11VertexShader* vertexShader;
-ID3D11PixelShader* pixelShader;
-ID3D11InputLayout* layoutt;
-
-bool InitializebgShader()
-{
-	HRESULT result;
-	ID3D10Blob* errorMessage = 0;
-	ID3D10Blob* vertexShaderBuffer = 0;
-	ID3D10Blob* pixelShaderBuffer = 0;
-
-	// Compile the vertex shader code.
-	D3DCompileFromFile(L"bgvertexShader.vs", NULL, NULL, "VS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
-		&vertexShaderBuffer, &errorMessage);
-
-	D3DCompileFromFile(L"bgpixelShader.ps", NULL, NULL, "PS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
-		&pixelShaderBuffer, &errorMessage);
-
-	
-	d3d11Device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &vertexShader);
-	d3d11Device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &pixelShader);
-	
-	D3D11_INPUT_ELEMENT_DESC Playout[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-
-	unsigned int numElements = sizeof(Playout) / sizeof(Playout[0]);
-
-	// Create the vertex input layout.
-	d3d11Device->CreateInputLayout(Playout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &layoutt);
-	
-	// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	vertexShaderBuffer->Release();
-	vertexShaderBuffer = 0;
-
-	pixelShaderBuffer->Release();
-	pixelShaderBuffer = 0;
-
-	return true;
-}
-
-bool InitializebgBuffers()
-{
-	// 정점 버퍼의 단위와 오프셋을 설정합니다.
-	UINT stride = sizeof(VertexType);
-	UINT offset = 0;
-
-	// 렌더링 할 수 있도록 입력 어셈블러에서 정점 버퍼를 활성으로 설정합니다.
-	d3d11DevCon->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-
-	// 렌더링 할 수 있도록 입력 어셈블러에서 인덱스 버퍼를 활성으로 설정합니다.
-	d3d11DevCon->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-	// 정점 버퍼로 그릴 기본형을 설정합니다. 여기서는 삼각형으로 설정합니다.
-	d3d11DevCon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	return true;
-}
-
-bool InitializeBG()
-{
-	VertexType vertices[] = {
-		VertexType(-0.5f, -0.5f, 0.0f), //bottm left
-		VertexType(-0.5f, 0.5f, 0.0f), //top left
-		VertexType(0.5f, -0.5f, 0.0f), //bottom right
-		VertexType(0.5f, 0.5f, 0.0f) //Top right
-	};
-
-	DWORD indices[] = {
-		0,1,2,3,2,1
-	};
-
-	D3D11_BUFFER_DESC vertexBufferDesc;
-	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(VertexType) * 4;
-	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufferDesc.CPUAccessFlags = 0;
-	vertexBufferDesc.MiscFlags = 0;
-	vertexBufferDesc.StructureByteStride = 0;
-
-
-	// subresource 구조에 정점 데이터에 대한 포인터를 제공합니다.
-	D3D11_SUBRESOURCE_DATA vertexData;
-	vertexData.pSysMem = vertices;
-	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
-
-	// 이제 정점 버퍼를 만듭니다.
-	if (FAILED(d3d11Device->CreateBuffer(&vertexBufferDesc, &vertexData, &vertexBuffer)))
-	{
-		MessageBox(0, L"CreateBuffer - Failed",
-			L"Error", MB_OK);
-		return false;
-	}
-
-	// 정적 인덱스 버퍼의 구조체를 설정합니다.
-	D3D11_BUFFER_DESC indexBufferDesc;
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(unsigned long) * 6;
-	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indexBufferDesc.CPUAccessFlags = 0;
-	indexBufferDesc.MiscFlags = 0;
-	indexBufferDesc.StructureByteStride = 0;
-
-	// 인덱스 데이터를 가리키는 보조 리소스 구조체를 작성합니다.
-	D3D11_SUBRESOURCE_DATA indexData;
-	indexData.pSysMem = indices;
-	indexData.SysMemPitch = 0;
-	indexData.SysMemSlicePitch = 0;
-
-	// 인덱스 버퍼를 생성합니다.
-	if (FAILED(d3d11Device->CreateBuffer(&indexBufferDesc, &indexData, &indexBuffer)))
-	{
-		MessageBox(0, L"CreateBuffer - Failed",
-			L"Error", MB_OK);
-		return false;
-	}
-
-	if (!InitializebgBuffers()) {
-		MessageBox(0, L"InitializebgBuffers - Failed",
-			L"Error", MB_OK);
-	}
-	if (!InitializebgShader()) {
-		MessageBox(0, L"InitializebgShader - Failed",
-			L"Error", MB_OK);
-	}
-
-	
-	return true;
-}
-
-void shutDownBG() {
-
-}
-
-void RenderBG() {
-	// Set the vertex input layout.
-	d3d11DevCon->IASetInputLayout(layoutt);
-
-	// Set the vertex and pixel shaders that will be used to render this triangle.
-	d3d11DevCon->VSSetShader(vertexShader, NULL, 0);
-	d3d11DevCon->PSSetShader(pixelShader, NULL, 0);
-
-	// Set the sampler state in the pixel shader.
-	//deviceContext->PSSetSamplers(0, 1, &sampleState);
-
-	// Render the triangle.
-	d3d11DevCon->DrawIndexed(6, 0, 0);
 }
 
 bool InitializeWindow(HINSTANCE hInstance,
@@ -753,9 +551,9 @@ bool InitScene()
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
 	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
@@ -1185,7 +983,7 @@ void RenderCamera() {
 
 	//  yaw, pitch, roll 값을 통해 회전 행렬을 만듭니다.
 	rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
-
+	
 	// lookAt 및 up 벡터를 회전 행렬로 변형하여 뷰가 원점에서 올바르게 회전되도록 합니다.
 	lookAtVector = XMVector3TransformCoord(lookAtVector, rotationMatrix);
 	upVector = XMVector3TransformCoord(upVector, rotationMatrix);
@@ -1210,14 +1008,12 @@ void UpdateScene(double time)
 {
 
 	//m_position.y += 0.001f;
-	m_position.x = cubeX ;
+	//m_position.x = cubeX;
 	m_position.y = 3.f;
 	m_position.z = -15.f;
 	RenderCamera();
 	//Keep the cubes rotating
 
-	//Reset cube1World
-	cube1World = XMMatrixIdentity();
 	//Define cube1's world space matrix
 	XMVECTOR rotaxis = XMVectorSet(0.0f, .0f, 1.0f, 0.0f);
 	//Rotation = XMMatrixRotationAxis(rotaxis, rot);
@@ -1225,11 +1021,11 @@ void UpdateScene(double time)
 
 	if (isRotate) {
 		rot += 1.5708f * time * 4.f;
-		if (rot >= 1.5708f *( i + 1)) {
+		if (rot >= 1.5708f * (i + 1)) {
 			rot = 1.5708f * (i + 1);
 			isRotate = false;
 			i++;
-		}		
+		}
 	}
 	if (isSpace) {
 		jumpty += 15.f * time;
@@ -1289,7 +1085,7 @@ void checkCubesbackfront() {
 }
 void DrawScene()
 {
-	
+
 
 	//Clear our backbuffer
 	float bgColor[4] = { (0.0f, 0.0f, 0.0f, 0.0f) };
@@ -1306,12 +1102,12 @@ void DrawScene()
 	RenderText(L" Time : ", 0, 10, 100, 100, fps);
 	RenderText(L"Shift : Reset Camera Focus ", 700, 10, 1024, 100, fps);
 
-	float blendFactor[] = { 1.f, 1.f, 1.f, 1.f }; //??
+	float blendFactor[] = { 0.4f, 0.4f, 0.4f, 0.4f }; //??
 
 	//Set the default blend state(no blending) for opaque objects
 	d3d11DevCon->OMSetBlendState(0, 0, 0xffffffff);
 	//Render Opaque objects
-	//d3d11DevCon->OMSetBlendState(Transparency, blendFactor, 0xffffffff);
+	d3d11DevCon->OMSetBlendState(Transparency, blendFactor, 0xffffffff);
 
 	//Set the cubes vertex buffer
 	UINT stride = sizeof(Vertex);
@@ -1323,6 +1119,7 @@ void DrawScene()
 
 	WVP = cube2World * camView * camProjection;
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
+
 	d3d11DevCon->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
 	d3d11DevCon->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
 	d3d11DevCon->PSSetShaderResources(0, 1, &m_textureView);
@@ -1366,7 +1163,7 @@ int messageloop() {
 			DispatchMessage(&msg);
 		}
 		else {
-			
+
 			// run game code 
 			total_game++;
 			frameCount++;

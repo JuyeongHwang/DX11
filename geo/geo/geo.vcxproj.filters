@@ -18,6 +18,9 @@
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Exercise.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="vertexShader.vs">
@@ -40,5 +43,10 @@
     <ClInclude Include="pch.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="effects.fx">
+      <Filter>소스 파일</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
