@@ -1,9 +1,3 @@
-
-
-
-https://user-images.githubusercontent.com/49023736/129855157-9e20eae0-2b89-4e80-b9de-618029826a3d.mp4
-
-
 ## 개발일지
 
 ### 2021.08.06
@@ -137,13 +131,7 @@ D3D11_APPEND_ALIGNED_ELEMENT<=를 이용해서 자동으로 할당할수도 있�
  
 RT와 TR의 중요성..ㅋㅋㅋㅋ
 
+![ezgif com-gif-maker (2)](https://user-images.githubusercontent.com/49023736/129855452-91ccc567-d148-48fa-9a54-e2b6c9384f71.gif)
+![ezgif com-gif-maker (3)](https://user-images.githubusercontent.com/49023736/129855460-122fc8dc-d110-4f68-9c0c-18746db0a4d5.gif)
 
-<img src="
-https://user-images.githubusercontent.com/49023736/129855360-cfd491b3-87e9-4a7d-b4f0-805ed018498a.gif
-" width="50%" height="40%" />
-
-
-<img src="
-https://user-images.githubusercontent.com/49023736/129855365-7c1b975e-23c3-47ad-98f8-cff2909b55df.gif)
-" width="50%" height="40%" />
 
