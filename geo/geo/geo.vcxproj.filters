@@ -26,6 +26,15 @@
     <None Include="pixelShader.ps">
       <Filter>소스 파일</Filter>
     </None>
+    <None Include="lightShader.ps">
+      <Filter>소스 파일</Filter>
+    </None>
+    <None Include="bgvertexShader.vs">
+      <Filter>소스 파일</Filter>
+    </None>
+    <None Include="bgpixelShader.ps">
+      <Filter>소스 파일</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">

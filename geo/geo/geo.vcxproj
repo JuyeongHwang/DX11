@@ -142,6 +142,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="bgpixelShader.ps" />
+    <None Include="bgvertexShader.vs" />
+    <None Include="lightShader.ps" />
     <None Include="pixelShader.ps" />
     <None Include="vertexShader.vs" />
   </ItemGroup>
