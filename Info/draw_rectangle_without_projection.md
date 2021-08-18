@@ -1,4 +1,4 @@
-'''c++
+~~~
 #include <SDKDDKVer.h>
 
 #define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용은 Windows 헤더에서 제외합니다.
@@ -526,4 +526,4 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
-'''
+~~~
