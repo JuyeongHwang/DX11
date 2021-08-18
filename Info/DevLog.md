@@ -130,5 +130,17 @@ D3D11_APPEND_ALIGNED_ELEMENT<=를 이용해서 자동으로 할당할수도 있�
  
  <img src="https://user-images.githubusercontent.com/49023736/129826572-c135e14a-533a-4aeb-8fb1-205e28296c1b.gif" width="50%" height="40%" />
  
+RT와 TR의 중요성..ㅋㅋㅋㅋ
+
+
+<img src="
+https://user-images.githubusercontent.com/49023736/129854929-f1a84d6a-d2f3-4220-9cb3-294c4bbbb799.mp4
+" width="50%" height="40%" />
+
+<img src="https://user-images.githubusercontent.com/49023736/129854936-e2f3a628-4c19-493a-abf8-bae087cc8be5.mp4" width="50%" height="40%" />
+
+
+
+
 
 
