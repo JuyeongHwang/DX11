@@ -21,32 +21,44 @@
     <ClCompile Include="Exercise.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="DirectClass.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DDSTextureLoader11.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vertexShader.vs">
-      <Filter>소스 파일</Filter>
-    </None>
-    <None Include="pixelShader.ps">
-      <Filter>소스 파일</Filter>
-    </None>
-    <None Include="lightShader.ps">
-      <Filter>소스 파일</Filter>
-    </None>
     <None Include="bgvertexShader.vs">
-      <Filter>소스 파일</Filter>
+      <Filter>리소스 파일</Filter>
     </None>
     <None Include="bgpixelShader.ps">
-      <Filter>소스 파일</Filter>
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="pixelShader.ps">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="vertexShader.vs">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="lightShader.ps">
+      <Filter>리소스 파일</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
+    <ClInclude Include="DirectClass.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DDSTextureLoader11.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="effects.fx">
-      <Filter>소스 파일</Filter>
+      <Filter>리소스 파일</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

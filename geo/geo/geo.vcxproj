@@ -78,9 +78,15 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir)geo\Inc;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\jiwoo\source\repos\geo\geo\Libs\Debug;$(LibraryPath)</LibraryPath>
+    <ExternalIncludePath>C:\Users\jiwoo\source\repos\geo\geo\Inc;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(SolutionDir)geo\Inc;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\jiwoo\source\repos\geo\geo\Libs\Release;$(LibraryPath)</LibraryPath>
+    <ExternalIncludePath>C:\Users\jiwoo\source\repos\geo\geo\Inc;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -139,6 +145,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DDSTextureLoader11.cpp" />
+    <ClCompile Include="DirectClass.cpp" />
     <ClCompile Include="Exercise.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -156,7 +164,9 @@
     <None Include="vertexShader.vs" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DirectClass.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="DDSTextureLoader11.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="effects.fx">

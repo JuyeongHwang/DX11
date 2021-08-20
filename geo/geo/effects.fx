@@ -10,8 +10,8 @@ struct VS_OUTPUT
     float2 Tex : TEXCOORD;
 };
 
-Texture2D shaderTexture;
-SamplerState SampleType;
+Texture2D shaderTexture : TEXTURE :register(t0);
+SamplerState SampleType : SAMPLER : register(s0);
 
 VS_OUTPUT VS(float4 inPos : POSITION, float2 inTex:TEXCOORD)
 {

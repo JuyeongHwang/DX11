@@ -1,46 +1,27 @@
 ﻿#include "pch.h"
 
-
-
-//FOR FONT
-// 
-ID3D10Device1* d3d101Device;
-IDXGIKeyedMutex* keyedMutex11;
-IDXGIKeyedMutex* keyedMutex10;
-ID2D1RenderTarget* D2DRenderTarget;
-ID2D1SolidColorBrush* Brush;
-ID3D11Texture2D* BackBuffer11;
-ID3D11Texture2D* sharedTex11;
-ID3D11Buffer* d2dVertBuffer;
-ID3D11Buffer* d2dIndexBuffer;
-ID3D11ShaderResourceView* d2dTexture;
-IDWriteFactory* DWriteFactory;
-IDWriteTextFormat* TextFormat;
-
-
 ID3D11BlendState* Transparency;
 ID3D11RasterizerState* CCWcullMode;
 ID3D11RasterizerState* CWcullMode;
 ID3D11RasterizerState* noCull;
 
-bool InitD2D_D3D101_DWrite(IDXGIAdapter1* Adapter);
+
 void InitD2DScreenTexture();
 void RenderText(wstring text, float left, float top, float right, float bottom);
 //*** 전역변수 ***//
 const int Width = 1024;
 const int Height = 720;
 
-IDXGISwapChain* swapChain = nullptr;
-ID3D11Device* device = nullptr;
-ID3D11DeviceContext* deviceContext = nullptr;
-ID3D11RenderTargetView* renderTargetView = nullptr;
-ID3D11DepthStencilView* depthStencilView;
-ID3D11Texture2D* depthStencilBuffer;
 
 ID3D11Buffer* CubeVertexBuffer = nullptr;
 ID3D11Buffer* triangleVertexBuffer = nullptr;
 ID3D11Buffer* CubeIndexBuffer = nullptr;
 ID3D11Buffer* triangleIndexBuffer = nullptr;
+ID3D11Buffer* backgroundVertexBuffer = nullptr;
+ID3D11Buffer* backgroundIndexBuffer = nullptr;
+ID3D11Buffer* circleVertexBuffer = nullptr;
+ID3D11Buffer* circleIndexBuffer = nullptr;
+
 ID3D11VertexShader* vertexShader;
 ID3D11PixelShader* pixelShader;
 ID3D11InputLayout* layout;
@@ -61,9 +42,11 @@ double GetFrameTime();
 // *********** 
 ID3D11Buffer* cbPerObjectBuffer;
 XMMATRIX WVP;
-XMMATRIX cubeWorld;
+XMMATRIX cubeWorld; 
+XMMATRIX bgWorld;
 XMMATRIX triangleWorld;
 XMMATRIX triangleWorld2;
+XMMATRIX circleWorld;
 XMMATRIX camView;
 XMMATRIX camProjection;
 
@@ -115,7 +98,7 @@ XMMATRIX Rotation;
 XMMATRIX Scale;
 XMMATRIX Translation;
 
-// **** texture **** //
+// **** texture - shader**** //
 int texheight = 0;
 int texwidth = 0;
 unsigned char* targaData = 0;
@@ -129,10 +112,14 @@ struct TargaHeader
 	unsigned char data2;
 };
 
+bool LoadTarga(char* name);
 ID3D11Texture2D* cubeTexture = 0;
 ID3D11ShaderResourceView* cubetextureView = 0;
-ID3D11SamplerState* CubesTexSamplerState = 0; //d3d
+ID3D11SamplerState* CubesTexSamplerState = 0;
 
+ID3D11Texture2D* bgTexture = 0;
+ID3D11ShaderResourceView* bgtextureView = 0;
+ID3D11SamplerState* BgTexSamplerState = 0; 
 
 // *** direct3D *** ///
 bool InitializeDirect3d11App(HINSTANCE hInstance);
@@ -148,17 +135,19 @@ int messageloop();
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lParam);
 
 
-
+#include "DirectClass.h"
+DirectClass* dx = new DirectClass;
 ///****< Main Windows Fuction >****///
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
 
+	
 	if (!InitializeWindow(hInstance, nShowCmd, Width, Height, true)) {
 
 		MessageBox(0, L"Window Initialization - Failed", L"Error", MB_OK);
 		return 0;
 	}
 
-	if (!InitializeDirect3d11App(hInstance)) {
+	if (!dx->InitializeDirect(hwnd, Width, Height)) {
 		MessageBox(0, L"Direct3d Initialization - Failed", L"Error", MB_OK);
 		return 0;
 	}
@@ -208,7 +197,8 @@ bool InitializeTriangle() {
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 	// 이제 정점 버퍼를 만듭니다.
-	if (FAILED(device->CreateBuffer(&vertexBufferDesc, &vertexData, &triangleVertexBuffer)))
+	
+	if (FAILED(dx->getDevice()->CreateBuffer(&vertexBufferDesc, &vertexData, &triangleVertexBuffer)))
 	{
 		return false;
 	}
@@ -249,20 +239,23 @@ bool InitializeTriangle() {
 	indexData.SysMemSlicePitch = 0;
 
 	// 인덱스 버퍼를 생성합니다.
-	if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &triangleIndexBuffer)))
+	if (FAILED(dx->getDevice()->CreateBuffer(&indexBufferDesc, &indexData, &triangleIndexBuffer)))
 	{
 		return false;
 	}
 
 }
 
+float total_game_time = 0.0f;
+float triangleX = 4.0f;
 void updateTriangle() {
+
 	XMVECTOR rotaxis = XMVectorSet(0.0f, .0f, 1.0f, 0.0f);
 
 	Rotation = XMMatrixRotationAxis(rotaxis, 0.0f);
 
 	triangleWorld = XMMatrixIdentity();
-	Translation = XMMatrixTranslation(4.f, -0.7f, 0.f);
+	Translation = XMMatrixTranslation(triangleX, -0.7f, 0.f);
 	Scale = XMMatrixTranslation(0.5f, 0.3f, 0.5f);
 	triangleWorld = Rotation*Scale*Translation;
 
@@ -275,25 +268,24 @@ void drawTriangle() {
 	updateTriangle();
 	UINT stride = sizeof(VertexType);
 	UINT offset = 0;
-
-
-	//move
 	
-	deviceContext->IASetVertexBuffers(0, 1, &triangleVertexBuffer, &stride, &offset);
-	deviceContext->IASetIndexBuffer(triangleIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	
+	//move
+	dx->getDevContext()->IASetVertexBuffers(0, 1, &triangleVertexBuffer, &stride, &offset);
+	dx->getDevContext()->IASetIndexBuffer(triangleIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 	WVP = triangleWorld * camView * camProjection;
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
-	deviceContext->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
-	deviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
-	deviceContext->DrawIndexed(18, 0, 0); //here
+	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
+	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+	dx->getDevContext()->DrawIndexed(18, 0, 0); //here
 
 
 	WVP = triangleWorld2 * camView * camProjection;
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
-	deviceContext->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
-	deviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
-	deviceContext->DrawIndexed(18, 0, 0); //here
+	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
+	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+	dx->getDevContext()->DrawIndexed(18, 0, 0); //here
 }
 
 bool InitializeCube() {
@@ -353,7 +345,7 @@ bool InitializeCube() {
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 	// 이제 정점 버퍼를 만듭니다.
-	if (FAILED(device->CreateBuffer(&vertexBufferDesc, &vertexData, &CubeVertexBuffer)))
+	if (FAILED(dx->getDevice()->CreateBuffer(&vertexBufferDesc, &vertexData, &CubeVertexBuffer)))
 	{
 		return false;
 	}
@@ -402,7 +394,7 @@ bool InitializeCube() {
 	indexData.SysMemSlicePitch = 0;
 
 	// 인덱스 버퍼를 생성합니다.
-	if (FAILED(device->CreateBuffer(&indexBufferDesc, &indexData, &CubeIndexBuffer)))
+	if (FAILED(dx->getDevice()->CreateBuffer(&indexBufferDesc, &indexData, &CubeIndexBuffer)))
 	{
 		return false;
 	}	
@@ -417,6 +409,7 @@ float rot = 0.0f;
 float jumpty = 0.0f;
 bool isStart = false;
 void settingCamera();
+
 void updateCube(double time) {
 
 	if (!isStart) {
@@ -471,31 +464,216 @@ void drawCube() {
 
 	UINT stride = sizeof(VertexType);
 	UINT offset = 0;
-	deviceContext->IASetVertexBuffers(0, 1, &CubeVertexBuffer, &stride, &offset);
-	deviceContext->IASetIndexBuffer(CubeIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	deviceContext->PSSetShaderResources(0, 1, &cubetextureView);
-	deviceContext->PSSetSamplers(0, 1, &CubesTexSamplerState);
+	dx->getDevContext()->IASetVertexBuffers(0, 1, &CubeVertexBuffer, &stride, &offset);
+	dx->getDevContext()->IASetIndexBuffer(CubeIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	dx->getDevContext()->PSSetShaderResources(0, 1, &cubetextureView);
+	dx->getDevContext()->PSSetSamplers(0, 1, &CubesTexSamplerState);
 
 
 	WVP = cubeWorld * camView * camProjection;
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
 
-	deviceContext->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
-	deviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
+	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
 
 
-	deviceContext->RSSetState(CWcullMode);
-	deviceContext->DrawIndexed(indexCount, 0, 0);
+	dx->getDevContext()->RSSetState(CWcullMode);
+	dx->getDevContext()->DrawIndexed(indexCount, 0, 0);
 
 }
 
+bool InitializeCircle() {
+	VertexType vertices[] = {
+		// Front Face
+		VertexType(-1.0f, -1.0f, -1.0f, 0.0f, 1.0f),
+		VertexType(-1.0f,  1.0f, -1.0f, 0.0f, 0.0f),
+		VertexType(1.0f,  1.0f, -1.0f, 1.0f, 0.0f),
+		VertexType(1.0f, -1.0f, -1.0f, 1.0f, 1.0f),
 
-bool LoadTarga() {
+	};
+	int bgvertexCount = sizeof(vertices) / sizeof(VertexType);
+
+
+	D3D11_BUFFER_DESC vertexBufferDesc;
+	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.ByteWidth = sizeof(VertexType) * bgvertexCount;
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0;
+	vertexBufferDesc.StructureByteStride = 0;
+
+	// subresource 구조에 정점 데이터에 대한 포인터를 제공합니다.
+	D3D11_SUBRESOURCE_DATA vertexData;
+	vertexData.pSysMem = vertices;
+	vertexData.SysMemPitch = 0;
+	vertexData.SysMemSlicePitch = 0;
+	// 이제 정점 버퍼를 만듭니다.
+	if (FAILED(dx->getDevice()->CreateBuffer(&vertexBufferDesc, &vertexData, &circleVertexBuffer)))
+	{
+		return false;
+	}
+
+	DWORD indices[] = {
+		// Front Face
+		0,  1,  2,
+		0,  2,  3,
+	};
+	int bgindexCount = sizeof(indices) / sizeof(DWORD);
+
+	// 정적 인덱스 버퍼의 구조체를 설정합니다.
+	D3D11_BUFFER_DESC indexBufferDesc;
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.ByteWidth = sizeof(unsigned long) * bgindexCount;
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0;
+	indexBufferDesc.StructureByteStride = 0;
+
+	// 인덱스 데이터를 가리키는 보조 리소스 구조체를 작성합니다.
+	D3D11_SUBRESOURCE_DATA indexData;
+	indexData.pSysMem = indices;
+	indexData.SysMemPitch = 0;
+	indexData.SysMemSlicePitch = 0;
+
+	// 인덱스 버퍼를 생성합니다.
+	if (FAILED(dx->getDevice()->CreateBuffer(&indexBufferDesc, &indexData, &circleIndexBuffer)))
+	{
+		return false;
+	}
+	return true;
+}
+int a = 0;
+void updateCircle() {
+	a += 3.f;
+	XMVECTOR rotaxis = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+	circleWorld = XMMatrixIdentity();
+	Rotation = XMMatrixRotationAxis(rotaxis, 0);
+	Scale = XMMatrixScaling(Width / 90, 1.8f, 0.4f);
+	Translation = XMMatrixTranslation(cubeX, -3.f, 4.f);
+
+	circleWorld = Rotation * Scale * Translation;
+}
+void drawCircle() {
+	updateCircle();
+
+	UINT stride = sizeof(VertexType);
+	UINT offset = 0;
+	dx->getDevContext()->IASetVertexBuffers(0, 1, &circleVertexBuffer, &stride, &offset);
+	dx->getDevContext()->IASetIndexBuffer(circleIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	dx->getDevContext()->PSSetShaderResources(0u, 1u, &bgtextureView);
+	dx->getDevContext()->PSSetSamplers(0, 1, &BgTexSamplerState);
+
+	WVP = bgWorld * camView * camProjection;
+	cbPerObj.WVP = XMMatrixTranspose(WVP);
+
+	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
+	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+
+	dx->getDevContext()->RSSetState(noCull);
+	dx->getDevContext()->DrawIndexed(6, 0, 0);
+}
+
+
+bool InitializeBg() {
+	VertexType vertices[] = {
+		// Front Face
+		VertexType(-1.0f, -1.0f, -1.0f, 0.0f, 1.0f),
+		VertexType(-1.0f,  1.0f, -1.0f, 0.0f, 0.0f),
+		VertexType(1.0f,  1.0f, -1.0f, 1.0f, 0.0f),
+		VertexType(1.0f, -1.0f, -1.0f, 1.0f, 1.0f),
+
+	};
+	int bgvertexCount = sizeof(vertices) / sizeof(VertexType);
+
+
+	D3D11_BUFFER_DESC vertexBufferDesc;
+	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.ByteWidth = sizeof(VertexType) * bgvertexCount;
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0;
+	vertexBufferDesc.StructureByteStride = 0;
+
+	// subresource 구조에 정점 데이터에 대한 포인터를 제공합니다.
+	D3D11_SUBRESOURCE_DATA vertexData;
+	vertexData.pSysMem = vertices;
+	vertexData.SysMemPitch = 0;
+	vertexData.SysMemSlicePitch = 0;
+	// 이제 정점 버퍼를 만듭니다.
+	if (FAILED(dx->getDevice()->CreateBuffer(&vertexBufferDesc, &vertexData, &backgroundVertexBuffer)))
+	{
+		return false;
+	}
+
+	DWORD indices[] = {
+		// Front Face
+		0,  1,  2,
+		0,  2,  3,
+	};
+	int bgindexCount = sizeof(indices) / sizeof(DWORD);
+
+	// 정적 인덱스 버퍼의 구조체를 설정합니다.
+	D3D11_BUFFER_DESC indexBufferDesc;
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.ByteWidth = sizeof(unsigned long) * bgindexCount;
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0;
+	indexBufferDesc.StructureByteStride = 0;
+
+	// 인덱스 데이터를 가리키는 보조 리소스 구조체를 작성합니다.
+	D3D11_SUBRESOURCE_DATA indexData;
+	indexData.pSysMem = indices;
+	indexData.SysMemPitch = 0;
+	indexData.SysMemSlicePitch = 0;
+
+	// 인덱스 버퍼를 생성합니다.
+	if (FAILED(dx->getDevice()->CreateBuffer(&indexBufferDesc, &indexData, &backgroundIndexBuffer)))
+	{
+		return false;
+	}
+	return true;
+}
+int aa = 0;
+void updateBg() {
+	aa += 3.f;
+	XMVECTOR rotaxis = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+	bgWorld = XMMatrixIdentity();
+	Rotation = XMMatrixRotationAxis(rotaxis, 0);
+	Scale = XMMatrixScaling(0.5f, 0.5f, 0.5f);
+	Translation = XMMatrixTranslation(cubeX + 3.0f, 0.f, 0.f);
+
+	bgWorld = Rotation * Scale * Translation;
+}
+void drawBg() {
+	updateBg();
+	
+	UINT stride = sizeof(VertexType);
+	UINT offset = 0;
+	dx->getDevContext()->IASetVertexBuffers(0, 1, &backgroundVertexBuffer, &stride, &offset);
+	dx->getDevContext()->IASetIndexBuffer(backgroundIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	dx->getDevContext()->PSSetShaderResources(0u, 1u, &bgtextureView);
+	dx->getDevContext()->PSSetSamplers(0, 1, &BgTexSamplerState);
+
+	WVP = bgWorld * camView * camProjection;
+	cbPerObj.WVP = XMMatrixTranspose(WVP);
+
+	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
+	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+
+	dx->getDevContext()->RSSetState(noCull);
+	dx->getDevContext()->DrawIndexed(6, 0, 0);
+}
+
+
+bool LoadTarga(char* name) {
 
 	FILE* filePtr;
 	TargaHeader targaFileHeader;
 
-	int error = fopen_s(&filePtr, "toppng.tga", "rb");
+	int error = fopen_s(&filePtr, name, "rb");
 	if (error != 0) { return false; }
 
 	int count = (unsigned int)fread(&targaFileHeader, sizeof(TargaHeader), 1, filePtr);
@@ -517,32 +695,58 @@ bool LoadTarga() {
 	count = (unsigned int)fread(targaData, 1, imageSize, filePtr);
 	if (count != imageSize) { return false; }
 
+	// Close the file.
+	error = fclose(filePtr);
+	if (error != 0)
+	{
+		return false;
+	}
+
 	/*
 	wstring ws = to_wstring(count);
 	LPCWSTR result = ws.c_str();
 	MessageBox(hwnd, result, L"Error", MB_OK);
 */
 
-	error = fclose(filePtr);
-	if (error != 0) { return false; }
-
 	return true;
 }
 
+#include "DDSTextureLoader11.h"
 
+ID3D11Resource* skytexture;
+ID3D11ShaderResourceView* skyRV;
+const wchar_t* fileName = (wchar_t*)"skymap.dds";
+
+bool loadDDS() {
+	HRESULT hr;
+	hr = CreateDDSTextureFromFile(dx->getDevice(),fileName, nullptr, &skyRV);
+	return true;
+}
+bool InitializeTextrue() {
+	ID3D11Texture2D* SMTexture = 0;
+	wstring ws = to_wstring(texheight);
+	LPCWSTR lp = ws.c_str();
+	if (!loadDDS()) {
+		return false;
+	}
+
+	return true;
+}
 bool InitializeTexture() {
+	//InitializeTextrue();
 	D3D11_TEXTURE2D_DESC textureDesc;
 	unsigned int rowPitch;
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 
-	if (!LoadTarga()) {
+	if (!LoadTarga((char*)"toppng.tga")) {
 		return false;
 	}
+
 
 	// Setup the description of the texture.
 	textureDesc.Height = texheight;
 	textureDesc.Width = texwidth;
-	textureDesc.MipLevels = 0;
+	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
 	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	textureDesc.SampleDesc.Count = 1;
@@ -552,8 +756,10 @@ bool InitializeTexture() {
 	textureDesc.CPUAccessFlags = 0;
 	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
+	D3D11_SUBRESOURCE_DATA srd;
+
 	// Create the empty texture.
-	HRESULT hResult = device->CreateTexture2D(&textureDesc, NULL, &cubeTexture);
+	HRESULT hResult = dx->getDevice()->CreateTexture2D(&textureDesc, NULL, &cubeTexture);
 	if (FAILED(hResult))
 	{
 		return false;
@@ -564,30 +770,97 @@ bool InitializeTexture() {
 	rowPitch = (texwidth * 4) * sizeof(unsigned char);
 
 	// Copy the targa image data into the texture.
-	deviceContext->UpdateSubresource(cubeTexture, 0, NULL, targaData, rowPitch, 0);
+	dx->getDevContext()->UpdateSubresource(cubeTexture, 0, NULL, targaData, rowPitch, 0);
 
 	// Setup the shader resource view description.
 	srvDesc.Format = textureDesc.Format;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = -1;
+	srvDesc.Texture2D.MipLevels = 1;
+
+
 
 	// Create the shader resource view for the texture.
-	hResult = device->CreateShaderResourceView(cubeTexture, &srvDesc, &cubetextureView);
+	hResult = dx->getDevice()->CreateShaderResourceView(cubeTexture, &srvDesc, &cubetextureView);
 	if (FAILED(hResult))
 	{
 		return false;
 	}
 
 	// Generate mipmaps for this texture.
-	deviceContext->GenerateMips(cubetextureView);
+	dx->getDevContext()->GenerateMips(cubetextureView);
+
+	// Release the targa image data now that the image data has been loaded into the texture.
+	delete[] targaData;
+
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	//Create the Sample State
+	dx->getDevice()->CreateSamplerState(&sampDesc, &CubesTexSamplerState);
+
+	// ******* background ********** //
+	ZeroMemory(&textureDesc, sizeof(textureDesc));
+	rowPitch = NULL;
+	ZeroMemory(&srvDesc, sizeof(srvDesc));
+
+	if (!LoadTarga((char*)"backGround.tga")) {
+		return false;
+	}
+
+	// Setup the description of the texture.
+	textureDesc.Height = texheight;
+	textureDesc.Width = texwidth;
+	textureDesc.MipLevels = 1;
+	textureDesc.ArraySize = 1;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+	// Create the empty texture.
+	hResult = dx->getDevice()->CreateTexture2D(&textureDesc, NULL, &bgTexture);
+	if (FAILED(hResult))
+	{
+		return false;
+	}
+	// Set the row pitch of the targa image data.
+	rowPitch = (texwidth * 4) * sizeof(unsigned char);
+
+	// Copy the targa image data into the texture.
+	dx->getDevContext()->UpdateSubresource(bgTexture, 0, NULL, targaData, rowPitch, 0);
+
+	// Setup the shader resource view description.
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	// Create the shader resource view for the texture.
+	hResult = dx->getDevice()->CreateShaderResourceView(bgTexture, &srvDesc, &bgtextureView);
+	if (FAILED(hResult))
+	{
+		return false;
+	}
+
+	// Generate mipmaps for this texture.
+	dx->getDevContext()->GenerateMips(bgtextureView);
 
 	// Release the targa image data now that the image data has been loaded into the texture.
 	delete[] targaData;
 	targaData = 0;
 
 
-	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
 	sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR;
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -598,8 +871,7 @@ bool InitializeTexture() {
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	//Create the Sample State
-	device->CreateSamplerState(&sampDesc, &CubesTexSamplerState);
-
+	dx->getDevice()->CreateSamplerState(&sampDesc, &BgTexSamplerState);
 }
 
 bool InitializeShader() {
@@ -612,7 +884,7 @@ bool InitializeShader() {
 	
 	InitializeCube();
 	InitializeTriangle();
-
+	InitializeBg();
 	// Initialize the pointers this function will use to null.
 	errorMessage = 0;
 	vertexShaderBuffer = 0;
@@ -627,7 +899,7 @@ bool InitializeShader() {
 
 
 	// Create the vertex shader from the buffer.
-	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &vertexShader);
+	result = dx->getDevice()->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &vertexShader);
 	if (FAILED(result))
 	{
 		MessageBox(hwnd, L"Could not create the vertex shader object.", L"Error", MB_OK);
@@ -635,7 +907,7 @@ bool InitializeShader() {
 	}
 
 	// Create the pixel shader from the buffer.
-	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &pixelShader);
+	result = dx->getDevice()->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &pixelShader);
 	if (FAILED(result))
 	{
 		MessageBox(hwnd, L"Could not create the pixel shader object.", L"Error", MB_OK);
@@ -643,7 +915,7 @@ bool InitializeShader() {
 	}
 
 	// Create the vertex input layout.
-	result = device->CreateInputLayout(Playout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &layout);
+	result = dx->getDevice()->CreateInputLayout(Playout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &layout);
 	if (FAILED(result))
 	{
 		MessageBox(hwnd, L"Could not create the layout object.", L"Error", MB_OK);
@@ -666,7 +938,7 @@ bool InitializeShader() {
 	cbbd.CPUAccessFlags = 0;
 	cbbd.MiscFlags = 0;
 
-	result = device->CreateBuffer(&cbbd, NULL, &cbPerObjectBuffer);
+	result = dx->getDevice()->CreateBuffer(&cbbd, NULL, &cbPerObjectBuffer);
 	if (FAILED(result))
 	{
 		MessageBox(hwnd, L"Could not create the cbPerObjectBuffer object.", L"Error", MB_OK);
@@ -691,7 +963,7 @@ bool InitializeShader() {
 	blendDesc.AlphaToCoverageEnable = true;
 	blendDesc.RenderTarget[0] = rtbd;
 
-	device->CreateBlendState(&blendDesc, &Transparency);
+	dx->getDevice()->CreateBlendState(&blendDesc, &Transparency);
 
 	D3D11_RASTERIZER_DESC cmdesc;
 	ZeroMemory(&cmdesc, sizeof(cmdesc));
@@ -700,17 +972,17 @@ bool InitializeShader() {
 	cmdesc.CullMode = D3D11_CULL_BACK;
 
 	cmdesc.FrontCounterClockwise = true;
-	device->CreateRasterizerState(&cmdesc, &CCWcullMode);
+	dx->getDevice()->CreateRasterizerState(&cmdesc, &CCWcullMode);
 
 	cmdesc.FrontCounterClockwise = false;
-	device->CreateRasterizerState(&cmdesc, &CWcullMode);
+	dx->getDevice()->CreateRasterizerState(&cmdesc, &CWcullMode);
 
 	D3D11_RASTERIZER_DESC rastDesc;
 	ZeroMemory(&rastDesc, sizeof(rastDesc));
 	rastDesc.FillMode = D3D11_FILL_SOLID;
 	rastDesc.CullMode = D3D11_CULL_NONE;
 
-	device->CreateRasterizerState(&rastDesc, &noCull);
+	dx->getDevice()->CreateRasterizerState(&rastDesc, &noCull);
 	
 	InitializeTexture();
 	InitD2DScreenTexture();
@@ -780,131 +1052,45 @@ bool InitializeDirect3d11App(HINSTANCE hInstance) {
 
 	HRESULT hr;
 
-	IDXGIFactory1* DXGIFactory;
-	CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&DXGIFactory);
-
-	IDXGIAdapter1* Adapter;
-	DXGIFactory->EnumAdapters1(0, &Adapter);
-
-	DXGIFactory->Release();
 
 	//m_vsync_enabled = true;
 
-	//버퍼 DESCRIBE for backBuffer
-	DXGI_MODE_DESC bufferDesc;
-	ZeroMemory(&bufferDesc, sizeof(DXGI_MODE_DESC));
-
-	bufferDesc.Width = Width;
-	bufferDesc.Height = Height; //resolution
-	bufferDesc.RefreshRate.Numerator = 60;
-	bufferDesc.RefreshRate.Denominator = 1; //Hz. 1/60
-	bufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	//스캔 라인 순서 및 크기를 지정하지 않음.
-	bufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	bufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-	//스왑체인 DESCRIBE
-	DXGI_SWAP_CHAIN_DESC swapChainDesc;
-	ZeroMemory(&swapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC));
-
-	swapChainDesc.BufferDesc = bufferDesc; //위에서 정의
-	swapChainDesc.BufferCount = 1; //백버퍼 하나만 사용.
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; //백버퍼의 사용 용도 지정
-	swapChainDesc.OutputWindow = hwnd; //사용될 윈도우 핸들
-
-	//멀티샘플링
-	swapChainDesc.SampleDesc.Count = 1;
-	swapChainDesc.SampleDesc.Quality = 0;
-	swapChainDesc.Windowed = TRUE;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD; //출력된 다음 백버퍼를 비우도록 지정.
-	swapChainDesc.Flags = 0; //추가 옵션 플래그 사용안함.
+	//Direct2D, Direct3D 10.1, DirectWrite 초기화
 
 	
-		//Create our SwapChain
-	hr = D3D11CreateDeviceAndSwapChain(Adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL,
-		D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT, NULL, NULL,
-		D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &device, NULL, &deviceContext);
-
-	//Direct2D, Direct3D 10.1, DirectWrite 초기화
-	InitD2D_D3D101_DWrite(Adapter);
-	Adapter->Release();
-	//Create our BackBuffer
-	ID3D11Texture2D* BackBuffer;
-	hr = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer);
-
-	//Create our Render Target
-	hr = device->CreateRenderTargetView(BackBuffer, NULL, &renderTargetView);
-	BackBuffer->Release();
-
-	if (FAILED(hr)) {
-		MessageBox(NULL, L"Create SwapChain failed", L"D3D11CreateDeviceAndSwapChain", MB_OK);
-		return false;
-	}
-
-	//백버퍼 생성
-	ID3D11Texture2D* BackBufferPtr = nullptr;
-	hr = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&BackBufferPtr);
-	if (FAILED(hr)) {
-		MessageBox(NULL, L"Create BackBuffer failed", L"swapChain->GetBuffer", MB_OK);
-		return false;
-	}
-
-	//백버퍼포인터로 렌더타겟 뷰 생성
-	hr = device->CreateRenderTargetView(BackBufferPtr, NULL, &renderTargetView);
-	if (FAILED(hr)) {
-		MessageBox(NULL, L"Create rendertargetview failed", L"device->CreateRenderTargetView", MB_OK);
-		return false;
-	}
-
-	//필요 없어진 백버퍼 포인터 해제
-	BackBufferPtr->Release();
-	BackBufferPtr = 0;
-
-	deviceContext->OMSetRenderTargets(1, &renderTargetView, NULL);
-
-	//Describe our Depth/Stencil Buffer
-	D3D11_TEXTURE2D_DESC depthStencilDesc;
-
-	depthStencilDesc.Width = Width;
-	depthStencilDesc.Height = Height;
-	depthStencilDesc.MipLevels = 1;
-	depthStencilDesc.ArraySize = 1;
-	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilDesc.SampleDesc.Count = 1;
-	depthStencilDesc.SampleDesc.Quality = 0;
-	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	depthStencilDesc.CPUAccessFlags = 0;
-	depthStencilDesc.MiscFlags = 0;
-
-	//Create the Depth/Stencil View
-	device->CreateTexture2D(&depthStencilDesc, NULL, &depthStencilBuffer);
-	device->CreateDepthStencilView(depthStencilBuffer, NULL, &depthStencilView);
-
-	//Set our Render Target
-	deviceContext->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
-
-	//렌더링을 위한 뷰포트
-	D3D11_VIEWPORT viewport;
-	viewport.Width = (float)Width;
-	viewport.Height = (float)Height;
-	viewport.MinDepth = 0.f;
-	viewport.MaxDepth = 1.f;
-	viewport.TopLeftX = 0.f;
-	viewport.TopLeftY = 0.f;
-
-	deviceContext->RSSetViewports(1, &viewport);
 
 	return true;
 }
 void ReleaseObjects() {
+	
+	//d3d
+	/*
 	swapChain->Release();
 	renderTargetView->Release();
 	device->Release();
 	deviceContext->Release();
 	depthStencilView->Release();
 	depthStencilBuffer->Release();
-	
+		//text
+	d3d101Device->Release();
+	keyedMutex11->Release();
+	keyedMutex10->Release();
+	D2DRenderTarget->Release();
+	Brush->Release();
+	//BackBuffer11->Release();
+	sharedTex11->Release();
+	d2dVertBuffer->Release();
+	d2dIndexBuffer->Release();
+	d2dTexture->Release();
+	DWriteFactory->Release();
+	TextFormat->Release();
+	*/
+	Transparency->Release();
+	CCWcullMode->Release();
+	CWcullMode->Release();
+	noCull->Release();
+
+
 	//model
 	CubeVertexBuffer->Release();
 	triangleVertexBuffer->Release();
@@ -912,6 +1098,7 @@ void ReleaseObjects() {
 	triangleIndexBuffer->Release();
 
 
+	// shader
 	vertexShader->Release();
 	pixelShader->Release();
 	layout->Release();
@@ -922,9 +1109,10 @@ void ReleaseObjects() {
 
 	cbPerObjectBuffer->Release();
 
+
 }
 
-float total_game_time = 0.0f;
+
 //화면 프레임
 void UpdateScene(double time) {
 	updateCube(time);
@@ -933,128 +1121,73 @@ void UpdateScene(double time) {
 
 void DrawScene() {
 
+	dx->DXBeginScene();
 	
-	float bgColor[] = { 0.0f,0.0f,0.0f,1.0f };
 
-	deviceContext->ClearRenderTargetView(renderTargetView, bgColor);
-	deviceContext->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	dx->getDevContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	deviceContext->IASetInputLayout(layout);
-	deviceContext->VSSetShader(vertexShader, NULL, 0);
-	deviceContext->PSSetShader(pixelShader, NULL, 0);
+	dx->getDevContext()->IASetInputLayout(layout);
+	dx->getDevContext()->VSSetShader(vertexShader, NULL, 0);
+	dx->getDevContext()->PSSetShader(pixelShader, NULL, 0);
 
 	
 	float blendFactor[] = { 0.4f, 0.4f, 0.4f, 0.4f }; //??
 
 	//Set the default blend state(no blending) for opaque objects
-	deviceContext->OMSetBlendState(0, 0, 0xffffffff);
+	dx->getDevContext()->OMSetBlendState(0, 0, 0xffffffff);
 	//Render Opaque objects
-	deviceContext->OMSetBlendState(Transparency, blendFactor, 0xffffffff);
+	dx->getDevContext()->OMSetBlendState(Transparency, blendFactor, 0xffffffff);
 
+	drawBg();
 	drawCube();
 	drawTriangle();
+	drawCircle();
 
 	float time2 = total_game_time * 0.001f;
 	wstring ws = to_wstring(time2);
-	RenderText(ws, 80, 10, 250, 250);
-	RenderText(L" Time : ", 0, 10, 100, 100);
-	RenderText(L"Shift : Reset Camera Focus ", 700, 10, 1024, 100);
+	
+	dx->RenderText(ws, 80, 10, 250, 250);
+	//Set the blend state for D2D render target texture objects
+	dx->getDevContext()->OMSetBlendState(Transparency, NULL, 0xffffffff);
+	WVP = XMMatrixIdentity();
+	cbPerObj.WVP = XMMatrixTranspose(WVP);
+	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
+	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+	dx->getDevContext()->PSSetSamplers(0, 1, &CubesTexSamplerState);
+	dx->getDevContext()->RSSetState(CWcullMode);
+	//Draw the second cube
+	dx->getDevContext()->DrawIndexed(6, 0, 0);
+	
+	dx->RenderText(L" Time : ", 0, 10, 100, 100);
+	dx->getDevContext()->OMSetBlendState(Transparency, NULL, 0xffffffff);
+	WVP = XMMatrixIdentity();
+	cbPerObj.WVP = XMMatrixTranspose(WVP);
+	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
+	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+	dx->getDevContext()->PSSetSamplers(0, 1, &CubesTexSamplerState);
+	dx->getDevContext()->RSSetState(CWcullMode);
+	//Draw the second cube
+	dx->getDevContext()->DrawIndexed(6, 0, 0);
 
-	swapChain->Present(0, 0);
+	dx->RenderText(L"Shift : Reset Camera Focus ", 700, 10, 1024, 100);
+	//Set the blend state for D2D render target texture objects
+	dx->getDevContext()->OMSetBlendState(Transparency, NULL, 0xffffffff);
+	WVP = XMMatrixIdentity();
+	cbPerObj.WVP = XMMatrixTranspose(WVP);
+	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
+	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+	dx->getDevContext()->PSSetSamplers(0, 1, &CubesTexSamplerState);
+	dx->getDevContext()->RSSetState(CWcullMode);
+	//Draw the second cube
+	dx->getDevContext()->DrawIndexed(6, 0, 0);
 
+	
+	dx->DXEndScene();
 	
 
 }
 
-bool InitD2D_D3D101_DWrite(IDXGIAdapter1* Adapter)
-{
-	HRESULT hr;
-	//Create our Direc3D 10.1 Device///////////////////////////////////////////////////////////////////////////////////////
-	hr = D3D10CreateDevice1(Adapter, D3D10_DRIVER_TYPE_HARDWARE, NULL, D3D10_CREATE_DEVICE_DEBUG | D3D10_CREATE_DEVICE_BGRA_SUPPORT,
-		D3D10_FEATURE_LEVEL_9_3, D3D10_1_SDK_VERSION, &d3d101Device);
-
-	//Create Shared Texture that Direct3D 10.1 will render on//////////////////////////////////////////////////////////////
-	D3D11_TEXTURE2D_DESC sharedTexDesc;
-
-	ZeroMemory(&sharedTexDesc, sizeof(sharedTexDesc));
-
-	sharedTexDesc.Width = Width;
-	sharedTexDesc.Height = Height;
-	sharedTexDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-	sharedTexDesc.MipLevels = 1;
-	sharedTexDesc.ArraySize = 1;
-	sharedTexDesc.SampleDesc.Count = 1;
-	sharedTexDesc.Usage = D3D11_USAGE_DEFAULT;
-	sharedTexDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-	sharedTexDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX;
-
-	hr = device->CreateTexture2D(&sharedTexDesc, NULL, &sharedTex11);
-
-	// Get the keyed mutex for the shared texture (for D3D11)///////////////////////////////////////////////////////////////
-	hr = sharedTex11->QueryInterface(__uuidof(IDXGIKeyedMutex), (void**)&keyedMutex11);
-
-	// Get the shared handle needed to open the shared texture in D3D10.1///////////////////////////////////////////////////
-	IDXGIResource* sharedResource10;
-	HANDLE sharedHandle10;
-
-	hr = sharedTex11->QueryInterface(__uuidof(IDXGIResource), (void**)&sharedResource10);
-
-	hr = sharedResource10->GetSharedHandle(&sharedHandle10);
-
-	sharedResource10->Release();
-
-	// Open the surface for the shared texture in D3D10.1///////////////////////////////////////////////////////////////////
-	IDXGISurface1* sharedSurface10;
-
-	hr = d3d101Device->OpenSharedResource(sharedHandle10, __uuidof(IDXGISurface1), (void**)(&sharedSurface10));
-
-	hr = sharedSurface10->QueryInterface(__uuidof(IDXGIKeyedMutex), (void**)&keyedMutex10);
-
-	// Create D2D factory///////////////////////////////////////////////////////////////////////////////////////////////////
-	ID2D1Factory* D2DFactory;
-	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory), (void**)&D2DFactory);
-
-	D2D1_RENDER_TARGET_PROPERTIES renderTargetProperties;
-
-	ZeroMemory(&renderTargetProperties, sizeof(renderTargetProperties));
-
-	renderTargetProperties.type = D2D1_RENDER_TARGET_TYPE_HARDWARE;
-	renderTargetProperties.pixelFormat = D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED);
-
-	hr = D2DFactory->CreateDxgiSurfaceRenderTarget(sharedSurface10, &renderTargetProperties, &D2DRenderTarget);
-
-	sharedSurface10->Release();
-	D2DFactory->Release();
-
-	// Create a solid color brush to draw something with        
-	hr = D2DRenderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 0.0f, 1.0f), &Brush);
-
-	//DirectWrite///////////////////////////////////////////////////////////////////////////////////////////////////////////
-	hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
-		reinterpret_cast<IUnknown**>(&DWriteFactory));
-
-	hr = DWriteFactory->CreateTextFormat(
-		L"Script",
-		NULL,
-		DWRITE_FONT_WEIGHT_REGULAR,
-		DWRITE_FONT_STYLE_NORMAL,
-		DWRITE_FONT_STRETCH_NORMAL,
-		24.0f,
-		L"en-us",
-		&TextFormat
-	);
-
-	hr = TextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-	hr = TextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
-
-	d3d101Device->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_POINTLIST);
-	return true;
-}
-void InitD2DScreenTexture()
-{
-	//Create the vertex buffer
+/*
 	VertexType v[] =
 	{
 		// Front Face
@@ -1063,120 +1196,16 @@ void InitD2DScreenTexture()
 		VertexType(1.0f,  1.0f, -1.0f, 1.0f, 0.0f),
 		VertexType(1.0f, -1.0f, -1.0f, 1.0f, 1.0f),
 	};
+	*/
+void InitD2DScreenTexture()
+{
 
-	DWORD indices[] = {
-		// Front Face
-		0,  1,  2,
-		0,  2,  3,
-	};
-
-	D3D11_BUFFER_DESC indexBufferDesc;
-	ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
-
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(DWORD) * 2 * 3;
-	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indexBufferDesc.CPUAccessFlags = 0;
-	indexBufferDesc.MiscFlags = 0;
-
-	D3D11_SUBRESOURCE_DATA iinitData;
-
-	iinitData.pSysMem = indices;
-	device->CreateBuffer(&indexBufferDesc, &iinitData, &d2dIndexBuffer);
-
-
-	D3D11_BUFFER_DESC vertexBufferDesc;
-	ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
-
-	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(VertexType) * 4;
-	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufferDesc.CPUAccessFlags = 0;
-	vertexBufferDesc.MiscFlags = 0;
-
-	D3D11_SUBRESOURCE_DATA vertexBufferData;
-
-	ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
-	vertexBufferData.pSysMem = v;
-	device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &d2dVertBuffer);
-
-	//Create A shader resource view from the texture D2D will render to,
-	//So we can use it to texture a square which overlays our scene
-	device->CreateShaderResourceView(sharedTex11, NULL, &d2dTexture);
 }
 
-wstring printText;
+
 void RenderText(std::wstring text, float left, float top, float right, float bottom)
 {
-	//Release the D3D 11 Device
-	keyedMutex11->ReleaseSync(0);
-
-	//Use D3D10.1 device
-	keyedMutex10->AcquireSync(0, 5);
-
-	//Draw D2D content        
-	D2DRenderTarget->BeginDraw();
-
-	//Clear D2D Background
-	D2DRenderTarget->Clear(D2D1::ColorF(0.0f, 1.0f, 1.0f, 0.0f));
-
-	//Create our string
-	std::wostringstream printString;
-	printString << text;
-	printText = printString.str();
-
-	//Set the Font Color
-	D2D1_COLOR_F FontColor = D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f);
-
-	//Set the brush color D2D will use to draw with
-	Brush->SetColor(FontColor);
-
-	//Create the D2D Render Area
-	D2D1_RECT_F layoutRect = D2D1::RectF(left, top, right, bottom);
-
-	//Draw the Text
-	D2DRenderTarget->DrawText(
-		printText.c_str(),
-		wcslen(printText.c_str()),
-		TextFormat,
-		layoutRect,
-		Brush
-	);
-
-	D2DRenderTarget->EndDraw();
-
-	//Release the D3D10.1 Device
-	keyedMutex10->ReleaseSync(1);
-
-	//Use the D3D11 Device
-	keyedMutex11->AcquireSync(1, 5);
-
-	//Use the shader resource representing the direct2d render target
-	//to texture a square which is rendered in screen space so it
-	//overlays on top of our entire scene. We use alpha blending so
-	//that the entire background of the D2D render target is "invisible",
-	//And only the stuff we draw with D2D will be visible (the text)
-
-	//Set the blend state for D2D render target texture objects
-	deviceContext->OMSetBlendState(Transparency, NULL, 0xffffffff);
-
-	//Set the d2d Index buffer
-	deviceContext->IASetIndexBuffer(d2dIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	//Set the d2d vertex buffer
-	UINT stride = sizeof(VertexType);
-	UINT offset = 0;
-	deviceContext->IASetVertexBuffers(0, 1, &d2dVertBuffer, &stride, &offset);
-
-	WVP = XMMatrixIdentity();
-	cbPerObj.WVP = XMMatrixTranspose(WVP);
-	deviceContext->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
-	deviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
-	deviceContext->PSSetShaderResources(0, 1, &d2dTexture);
-	deviceContext->PSSetSamplers(0, 1, &CubesTexSamplerState);
-
-	deviceContext->RSSetState(CWcullMode);
-	//Draw the second cube
-	deviceContext->DrawIndexed(6, 0, 0);
+	
 }
 
 
