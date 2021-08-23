@@ -1,7 +1,7 @@
 ## 개발일지
 
 <details>
-<summary><span style = " font-size:1.5em;  color: green;">2021.08.06</span></summary>
+<summary>2021.08.06</summary>
 <div markdown="1">
 
   뿅하면 만들어지는 유니티, 언리얼과 다르게 창을 만드는 것부터 아니 프로젝트를 세팅하는 것부터 많은 고난이 있었다...<br>
@@ -16,15 +16,22 @@
 </div>
 </details>
 
-### 2021.08.07
+<details>
+<summary>2021.08.07</summary>
+<div markdown="1">
+
   <strike>다른 컴퓨터에서는 문제가 없었는데 그래픽카드가 없는 내 노트북에서 하려니까 sdk를 까는 것조차 안되었다,,데스크탑 새로 맞출때까지 C++ 공부 먼저 하는 걸로 ㅜㅜ</strike><br>
   =><strike>내 놑북 그래픽이 다렉을 지원하는 버전이여야 하는 건 맞지만 글카가 없어서 안 깔리는건 아니었던걸로.. 오류였다.</strike>
   =>08.11 오류가 나면서 알게된 사실인데 내가 쓰는 버전은 directX가 자동으로 깔린다구 한다. 따로 깔 필요가 없는듯,, 집가서 확인하기!
-  
+</div>
+</details>
 
-### 2021.08.09
+	
+<details>
+<summary>2021.08.09</summary>
+<div markdown="1">
 
-<img src="https://user-images.githubusercontent.com/49023736/128650580-85dd1d33-02a5-44bd-a6ce-4b6153cd03c8.jpg" width="30%" height="30%" />
+  <img src="https://user-images.githubusercontent.com/49023736/128650580-85dd1d33-02a5-44bd-a6ce-4b6153cd03c8.jpg" width="30%" height="30%" />
   1장을 읽고있는데 선형대수의 집합체였다.. 5장 렌더링 파이프까지 봤는데 기본적인 개념을 정립하기는 좋았지만 directx12라 계속 봐야할지 고민이다
   
   https://minok-portfolio.tistory.com/2?category=370780 <br>
@@ -32,9 +39,15 @@
   https://hombody.tistory.com/11?category=846211
   2d 참고하기 좋을 것 같다.
 
-### 2021.08.10
+</div>
+</details>
 
-삼각형을 그렸다<br>
+### 2021.08.10
+<details>
+<summary>2021.08.10</summary>
+<div markdown="1">
+
+  삼각형을 그렸다<br>
 <img src="https://user-images.githubusercontent.com/49023736/128795674-805808d6-0d63-48b4-a3a2-e75a57280504.png" width="30%" height="30%" />
 
 ? : opengl과는 index 버퍼 순서가 반대인가???<br>
@@ -49,6 +62,17 @@ https://m.blog.naver.com/masca140/220704230471
 내일 할거
 https://m.blog.naver.com/atom723/190311655
 https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-dxgi
+
+</div>
+</details>
+
+
+	
+	
+	
+	
+	
+	
 
 ### 2021.08.11
 
