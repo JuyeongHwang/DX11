@@ -143,3 +143,36 @@ Rotation * Scale * Translation ;
 주말동안 1. 배경 만들기 2. 캐릭터 만들기 3. 콜라이더 만들기 4. 충돌 구현 5. 게임 전반적인 구조(텍스쳐등) 만들기
 우선 단순하게 점프로 피하는 수준만 구현하기.
 
+### 2021.08.23
+
+## [간단한 가이드라인]
+
+## 01. 초기화
+
+### 01 -1 윈도우 초기화
+
+### 01 -2 -0 direct3d 초기화 
+
+D3D11CreateDeviceAndSwapChain()
+-> device, deviceContext, swapchain 만들기위해, DXGI_SWAP_CHAIN_DESC,IDXGIFactory1,IDXGIAdapter1 생성
+
+CreateDepthStencilView()
+->깊이/스텐실뷰 만들기
+
+### 01 - 2 -1 direct2d
+
+### 01 -3 IASet~을 위한 준비
+
+해야할 것들
+1. 정점(빛, 위치, 텍스쳐 등)/인덱스 정보 생성
+2. 셰이더 컴파일 & 셰이더 오브젝트 만들기
+3. 셰이더 세팅 (VSSetShader/PSSetShader)
+4. 뷰표트 만들기
+5. 상수버퍼 세팅
+6. 카메라 세팅을 통한 view matrix, projection matrix 구하기
+7. CreateBlendState()
+
+### 01 -4 directInput 초기화
+
+## 02. 게임 진행
+
