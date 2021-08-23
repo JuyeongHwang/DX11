@@ -38,7 +38,6 @@ using namespace std;
 #include <d3d10_1.h>
 #include <sstream>
 #include <dxgi.h>
-
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <directxmath.h>

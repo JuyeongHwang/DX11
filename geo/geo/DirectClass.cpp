@@ -106,6 +106,8 @@ bool DirectClass::InitializeDirect(HWND hwnd, int screenWidth, int screenHeight)
 	m_device->CreateTexture2D(&depthStencilDesc, NULL, &m_depthStencilBuffer);
 	m_device->CreateDepthStencilView(m_depthStencilBuffer, NULL, &m_depthStencilView);
 
+	
+
 	//Set our Render Target
 	m_deviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
 

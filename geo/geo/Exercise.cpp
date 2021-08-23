@@ -42,7 +42,8 @@ double GetFrameTime();
 // *********** 
 ID3D11Buffer* cbPerObjectBuffer;
 XMMATRIX WVP;
-XMMATRIX cubeWorld; 
+XMMATRIX cubeWorld;
+XMMATRIX cubeFloorWorld;
 XMMATRIX bgWorld;
 XMMATRIX triangleWorld;
 XMMATRIX triangleWorld2;
@@ -52,11 +53,76 @@ XMMATRIX camProjection;
 
 
 
+//*****************
+#include <vector>
+
+ID3D11Buffer* sphereIndexBuffer;
+ID3D11Buffer* sphereVertBuffer;
+
+ID3D11VertexShader* SKYMAP_VS;
+ID3D11PixelShader* SKYMAP_PS;
+ID3D10Blob* SKYMAP_VS_Buffer;
+ID3D10Blob* SKYMAP_PS_Buffer;
+
+ID3D11ShaderResourceView* smrv;
+
+ID3D11DepthStencilState* DSLessEqual;
+ID3D11RasterizerState* RSCullNone;
+
+int NumSphereVertices;
+int NumSphereFaces;
+
+XMMATRIX sphereWorld;
+
+
+float cubeBoundingSphere = 0.0f;
+std::vector<XMFLOAT3> cubeBoundingBoxVertPosArray;
+std::vector<DWORD> cubeBoundingBoxVertIndexArray;
+XMVECTOR cubeCenterOffset;
+
+void CreateBoundingVolumes(std::vector<XMFLOAT3>& vertPosArray,    // The array containing our models vertex positions
+	std::vector<XMFLOAT3>& boundingBoxVerts,                            // Array we want to store the bounding box's vertex positions
+	std::vector<DWORD>& boundingBoxIndex,                            // This is our bounding box's index array
+	float& boundingSphere,                                            // The float containing the radius of our bounding sphere
+	XMVECTOR& objectCenterOffset);                                    // A vector containing the distance between the models actual center and (0, 0, 0) in model space
+
+
+void CreateSphere(int LatLines, int LongLines);
+
+
+
 struct cbPerObject
 {
 	XMMATRIX  WVP;
+	XMMATRIX World;
 };
 cbPerObject cbPerObj;
+
+ID3D11Buffer* cbPerFrameBuffer;
+
+struct Light
+{
+	Light()
+	{
+		ZeroMemory(this, sizeof(Light));
+	}
+	XMFLOAT3 dir;
+	float pad;
+	XMFLOAT4 ambient;
+	XMFLOAT4 diffuse;
+};
+
+Light light;
+
+struct cbPerFrame
+{
+	Light  light;
+};
+
+cbPerFrame constbuffPerFrame;
+void UpdateScene(double time);
+ID3D11PixelShader* D2D_PS;
+ID3D10Blob* D2D_PS_Buffer;
 
 //정점 배열 수
 float vertexCount = 0;
@@ -73,7 +139,8 @@ D3D11_INPUT_ELEMENT_DESC Playout[] =
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	//{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{"NORMAL", 0,DXGI_FORMAT_R32G32B32_FLOAT,0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA,0}
 };
 unsigned int numElements = ARRAYSIZE(Playout);
 
@@ -82,11 +149,13 @@ unsigned int numElements = ARRAYSIZE(Playout);
 struct VertexType {
 	VertexType() {} //기본 생성자. 없으면 오류난다.
 	VertexType(float x, float y, float z,
-		float u, float v)
-		: pos(x, y, z), texCoord(u, v){}
+		float u, float v,
+		float nx, float ny, float nz)
+		: pos(x, y, z), texCoord(u, v), normal(nx, ny, nz){}
 
 	XMFLOAT3 pos;
 	XMFLOAT2 texCoord;
+	XMFLOAT3 normal;
 };
 
 // *** camera *** //
@@ -165,19 +234,231 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	return 0;
 }
 
+
+
+void CreateBoundingVolumes(std::vector<XMFLOAT3>& vertPosArray,
+	std::vector<XMFLOAT3>& boundingBoxVerts,
+	std::vector<DWORD>& boundingBoxIndex,
+	float& boundingSphere,
+	XMVECTOR& objectCenterOffset) {
+
+	XMFLOAT3 minVertex = XMFLOAT3(FLT_MAX, FLT_MAX, FLT_MAX);
+	XMFLOAT3 maxVertex = XMFLOAT3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+	for (UINT i = 0; i < vertPosArray.size(); i++)
+	{
+		// The minVertex and maxVertex will most likely not be actual vertices in the model, but vertices
+		// that use the smallest and largest x, y, and z values from the model to be sure ALL vertices are
+		// covered by the bounding volume
+
+		//Get the smallest vertex 
+		minVertex.x = min(minVertex.x, vertPosArray[i].x);    // Find smallest x value in model
+		minVertex.y = min(minVertex.y, vertPosArray[i].y);    // Find smallest y value in model
+		minVertex.z = min(minVertex.z, vertPosArray[i].z);    // Find smallest z value in model
+
+		//Get the largest vertex 
+		maxVertex.x = max(maxVertex.x, vertPosArray[i].x);    // Find largest x value in model
+		maxVertex.y = max(maxVertex.y, vertPosArray[i].y);    // Find largest y value in model
+		maxVertex.z = max(maxVertex.z, vertPosArray[i].z);    // Find largest z value in model
+	}
+
+	// Compute distance between maxVertex and minVertex
+	float distX = (maxVertex.x - minVertex.x) / 2.0f;
+	float distY = (maxVertex.y - minVertex.y) / 2.0f;
+	float distZ = (maxVertex.z - minVertex.z) / 2.0f;
+
+	// Now store the distance between (0, 0, 0) in model space to the models real center
+	objectCenterOffset = XMVectorSet(maxVertex.x - distX, maxVertex.y - distY, maxVertex.z - distZ, 0.0f);
+
+	// Compute bounding sphere (distance between min and max bounding box vertices)
+	// boundingSphere = sqrt(distX*distX + distY*distY + distZ*distZ) / 2.0f;
+	boundingSphere = XMVectorGetX(XMVector3Length(XMVectorSet(distX, distY, distZ, 0.0f)));
+
+	// Create bounding box    
+	// Front Vertices
+	boundingBoxVerts.push_back(XMFLOAT3(minVertex.x, minVertex.y, minVertex.z));
+	boundingBoxVerts.push_back(XMFLOAT3(minVertex.x, maxVertex.y, minVertex.z));
+	boundingBoxVerts.push_back(XMFLOAT3(maxVertex.x, maxVertex.y, minVertex.z));
+	boundingBoxVerts.push_back(XMFLOAT3(maxVertex.x, minVertex.y, minVertex.z));
+
+	// Back Vertices
+	boundingBoxVerts.push_back(XMFLOAT3(minVertex.x, minVertex.y, maxVertex.z));
+	boundingBoxVerts.push_back(XMFLOAT3(maxVertex.x, minVertex.y, maxVertex.z));
+	boundingBoxVerts.push_back(XMFLOAT3(maxVertex.x, maxVertex.y, maxVertex.z));
+	boundingBoxVerts.push_back(XMFLOAT3(minVertex.x, maxVertex.y, maxVertex.z));
+
+	DWORD* i = new DWORD[36];
+
+	// Front Face
+	i[0] = 0; i[1] = 1; i[2] = 2;
+	i[3] = 0; i[4] = 2; i[5] = 3;
+
+	// Back Face
+	i[6] = 4; i[7] = 5; i[8] = 6;
+	i[9] = 4; i[10] = 6; i[11] = 7;
+
+	// Top Face
+	i[12] = 1; i[13] = 7; i[14] = 6;
+	i[15] = 1; i[16] = 6; i[17] = 2;
+
+	// Bottom Face
+	i[18] = 0; i[19] = 4; i[20] = 5;
+	i[21] = 0; i[22] = 5; i[23] = 3;
+
+	// Left Face
+	i[24] = 4; i[25] = 7; i[26] = 1;
+	i[27] = 4; i[28] = 1; i[29] = 0;
+
+	// Right Face
+	i[30] = 3; i[31] = 2; i[32] = 6;
+	i[33] = 3; i[34] = 6; i[35] = 5;
+
+	for (int j = 0; j < 36; j++)
+		boundingBoxIndex.push_back(i[j]);
+}
+XMMATRIX Rotationx;
+XMMATRIX Rotationy;
+
+void CreateSphere(int LatLines, int LongLines)
+{
+	NumSphereVertices = ((LatLines - 2) * LongLines) + 2;
+	NumSphereFaces = ((LatLines - 3) * (LongLines) * 2) + (LongLines * 2);
+
+	float sphereYaw = 0.0f;
+	float spherePitch = 0.0f;
+
+	std::vector<VertexType> vertices(NumSphereVertices);
+
+	XMVECTOR currVertPos = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+
+	vertices[0].pos.x = 0.0f;
+	vertices[0].pos.y = 0.0f;
+	vertices[0].pos.z = 1.0f;
+
+	for (DWORD i = 0; i < LatLines - 2; ++i)
+	{
+		spherePitch = (i + 1) * (3.14 / (LatLines - 1));
+		Rotationx = XMMatrixRotationX(spherePitch);
+		for (DWORD j = 0; j < LongLines; ++j)
+		{
+			sphereYaw = j * (6.28 / (LongLines));
+			Rotationy = XMMatrixRotationZ(sphereYaw);
+			currVertPos = XMVector3TransformNormal(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), (Rotationx * Rotationy));
+			currVertPos = XMVector3Normalize(currVertPos);
+			vertices[i * LongLines + j + 1].pos.x = XMVectorGetX(currVertPos);
+			vertices[i * LongLines + j + 1].pos.y = XMVectorGetY(currVertPos);
+			vertices[i * LongLines + j + 1].pos.z = XMVectorGetZ(currVertPos);
+		}
+	}
+
+	vertices[NumSphereVertices - 1].pos.x = 0.0f;
+	vertices[NumSphereVertices - 1].pos.y = 0.0f;
+	vertices[NumSphereVertices - 1].pos.z = -1.0f;
+
+
+	D3D11_BUFFER_DESC vertexBufferDesc;
+	ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
+
+	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.ByteWidth = sizeof(VertexType) * NumSphereVertices;
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA vertexBufferData;
+
+	ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
+	vertexBufferData.pSysMem = &vertices[0];
+	HRESULT hr = dx->getDevice()->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &sphereVertBuffer);
+
+
+	std::vector<DWORD> indices(NumSphereFaces * 3);
+
+	int k = 0;
+	for (DWORD l = 0; l < LongLines - 1; ++l)
+	{
+		indices[k] = 0;
+		indices[k + 1] = l + 1;
+		indices[k + 2] = l + 2;
+		k += 3;
+	}
+
+	indices[k] = 0;
+	indices[k + 1] = LongLines;
+	indices[k + 2] = 1;
+	k += 3;
+
+	for (DWORD i = 0; i < LatLines - 3; ++i)
+	{
+		for (DWORD j = 0; j < LongLines - 1; ++j)
+		{
+			indices[k] = i * LongLines + j + 1;
+			indices[k + 1] = i * LongLines + j + 2;
+			indices[k + 2] = (i + 1) * LongLines + j + 1;
+
+			indices[k + 3] = (i + 1) * LongLines + j + 1;
+			indices[k + 4] = i * LongLines + j + 2;
+			indices[k + 5] = (i + 1) * LongLines + j + 2;
+
+			k += 6; // next quad
+		}
+
+		indices[k] = (i * LongLines) + LongLines;
+		indices[k + 1] = (i * LongLines) + 1;
+		indices[k + 2] = ((i + 1) * LongLines) + LongLines;
+
+		indices[k + 3] = ((i + 1) * LongLines) + LongLines;
+		indices[k + 4] = (i * LongLines) + 1;
+		indices[k + 5] = ((i + 1) * LongLines) + 1;
+
+		k += 6;
+	}
+
+	for (DWORD l = 0; l < LongLines - 1; ++l)
+	{
+		indices[k] = NumSphereVertices - 1;
+		indices[k + 1] = (NumSphereVertices - 1) - (l + 1);
+		indices[k + 2] = (NumSphereVertices - 1) - (l + 2);
+		k += 3;
+	}
+
+	indices[k] = NumSphereVertices - 1;
+	indices[k + 1] = (NumSphereVertices - 1) - LongLines;
+	indices[k + 2] = NumSphereVertices - 2;
+
+	D3D11_BUFFER_DESC indexBufferDesc;
+	ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
+
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.ByteWidth = sizeof(DWORD) * NumSphereFaces * 3;
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA iinitData;
+
+	iinitData.pSysMem = &indices[0];
+	dx->getDevice()->CreateBuffer(&indexBufferDesc, &iinitData, &sphereIndexBuffer);
+
+}
+
+
+
+
+
 bool InitializeTriangle() {
 
 	VertexType vertices2[] = {
-		VertexType(0.5f, 1.0f, -0.5f, 0.1f, 0.1f),
-		VertexType(1.0f, +.0f, -1.0f, 0.1f, 0.1f),
-		VertexType(+0.0f, +0.0f, -1.0f,0.1f, 0.1f),
+		VertexType(0.5f, 1.0f, -0.5f, 0.1f, 0.1f, -1.0f, -1.0f, -1.0f),
+		VertexType(1.0f, +.0f, -1.0f, 0.1f, 0.1f,1.0f,1.0f,1.0f),
+		VertexType(+0.0f, +0.0f, -1.0f,0.1f, 0.1f,1.0f,1.0f,1.0f),
 
-		VertexType(+.0f, .0f, .0f ,0.1f, 0.1f),
-		VertexType(1.0f, .0f, .0f ,0.1f, 0.1f),
+		VertexType(+.0f, .0f, .0f ,0.1f, 0.1f,1.0f,1.0f,1.0f),
+		VertexType(1.0f, .0f, .0f ,0.1f, 0.1f,1.0f,1.0f,1.0f),
 
-		VertexType(-1.0f, +1.0f, +1.0f,0.1f, 0.1f),
-		VertexType(+1.0f, +1.0f, +1.0f,0.1f, 0.1f),
-		VertexType(+1.0f, -1.0f, +1.0f,0.1f, 0.1f)
+		VertexType(-1.0f, +1.0f, +1.0f,0.1f, 0.1f,1.0f,1.0f,1.0f),
+		VertexType(+1.0f, +1.0f, +1.0f,0.1f, 0.1f,1.0f,1.0f,1.0f),
+		VertexType(+1.0f, -1.0f, +1.0f,0.1f, 0.1f,1.0f,1.0f,1.0f)
 		
 	};
 	int vertexCount = sizeof(vertices2) / sizeof(VertexType);
@@ -255,15 +536,16 @@ void updateTriangle() {
 	Rotation = XMMatrixRotationAxis(rotaxis, 0.0f);
 
 	triangleWorld = XMMatrixIdentity();
-	Translation = XMMatrixTranslation(triangleX, -0.7f, 0.f);
-	Scale = XMMatrixTranslation(0.5f, 0.3f, 0.5f);
+	Translation = XMMatrixTranslation(triangleX, -0.7f, 0.5f);
+	Scale = XMMatrixTranslation(0.2f, 0.15f, 0.2f);
 	triangleWorld = Rotation*Scale*Translation;
 
 	triangleWorld2 = XMMatrixIdentity();
-	Translation = XMMatrixTranslation(15.0f, -0.7f,-0.f);
-	Scale = XMMatrixTranslation(0.5f, 0.3f, 0.5f);
+	Translation = XMMatrixTranslation(15.0f, -0.7f, 0.5f);
+	Scale = XMMatrixTranslation(0.2f, 0.15f, 0.2f);
 	triangleWorld2 = Rotation * Scale * Translation;
 }
+
 void drawTriangle() {
 	updateTriangle();
 	UINT stride = sizeof(VertexType);
@@ -276,15 +558,19 @@ void drawTriangle() {
 
 	WVP = triangleWorld * camView * camProjection;
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
+	cbPerObj.World = XMMatrixTranspose(triangleWorld);
 	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
 	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+
 	dx->getDevContext()->DrawIndexed(18, 0, 0); //here
 
 
 	WVP = triangleWorld2 * camView * camProjection;
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
+	cbPerObj.World = XMMatrixTranspose(triangleWorld2);
 	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
 	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+
 	dx->getDevContext()->DrawIndexed(18, 0, 0); //here
 }
 
@@ -292,45 +578,49 @@ bool InitializeCube() {
 
 	VertexType vertices[] = {
 		// Front Face
-		VertexType(-1.0f, -1.0f, -1.0f, 0.0f, 1.0f),
-		VertexType(-1.0f,  1.0f, -1.0f, 0.0f, 0.0f),
-		VertexType(1.0f,  1.0f, -1.0f, 1.0f, 0.0f),
-		VertexType(1.0f, -1.0f, -1.0f, 1.0f, 1.0f),
+		VertexType(-1.0f, -1.0f, -1.0f, 0.0f, 1.0f,1.0f,1.0f,1.0f),
+		VertexType(-1.0f,  1.0f, -1.0f, 0.0f, 0.0f,1.0f,1.0f,1.0f),
+		VertexType(1.0f,  1.0f, -1.0f, 1.0f, 0.0f,1.0f,1.0f,1.0f),
+		VertexType(1.0f, -1.0f, -1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f),
 
 		// Back Face
-		VertexType(-1.0f, -1.0f, 1.0f, 1.0f, 1.0f),
-		VertexType(1.0f, -1.0f, 1.0f, 0.0f, 1.0f),
-		VertexType(1.0f,  1.0f, 1.0f, 0.0f, 0.0f),
-		VertexType(-1.0f,  1.0f, 1.0f, 1.0f, 0.0f),
+		VertexType(-1.0f, -1.0f, 1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f),
+		VertexType(1.0f, -1.0f, 1.0f, 0.0f, 1.0f,1.0f,1.0f,1.0f),
+		VertexType(1.0f,  1.0f, 1.0f, 0.0f, 0.0f,1.0f,1.0f,1.0f),
+		VertexType(-1.0f,  1.0f, 1.0f, 1.0f, 0.0f,1.0f,1.0f,1.0f),
 
 		// Top Face
-		VertexType(-1.0f, 1.0f, -1.0f, 1.f, 1.f),
-		VertexType(-1.0f, 1.0f,  1.0f, 0.0f, 1.f),
-		VertexType(1.0f, 1.0f,  1.0f, 0.0f, 0.0f),
-		VertexType(1.0f, 1.0f, -1.0f, 1.f, 1.f),
+		VertexType(-1.0f, 1.0f, -1.0f, 1.f, 1.f,1.0f,1.0f,1.0f),
+		VertexType(-1.0f, 1.0f,  1.0f, 0.0f, 1.f,1.0f,1.0f,1.0f),
+		VertexType(1.0f, 1.0f,  1.0f, 0.0f, 0.0f,1.0f,1.0f,1.0f),
+		VertexType(1.0f, 1.0f, -1.0f, 1.f, 1.f,1.0f,1.0f,1.0f),
 
 		// Bottom Face
-		VertexType(-1.0f, -1.0f, -1.0f, 1.0f, 1.0f),
-		VertexType(1.0f, -1.0f, -1.0f, 0.0f, 1.0f),
-		VertexType(1.0f, -1.0f,  1.0f, 0.0f,0.0f),
-		VertexType(-1.0f, -1.0f,  1.0f, 1.0f, 1.f),
+		VertexType(-1.0f, -1.0f, -1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f),
+		VertexType(1.0f, -1.0f, -1.0f, 0.0f, 1.0f,1.0f,1.0f,1.0f),
+		VertexType(1.0f, -1.0f,  1.0f, 0.0f,0.0f,1.0f,1.0f,1.0f),
+		VertexType(-1.0f, -1.0f,  1.0f, 1.0f, 1.f,1.0f,1.0f,1.0f),
 
 		// Left Face
-		VertexType(-1.0f, -1.0f,  1.0f, 0.0f, 1.0f),
-		VertexType(-1.0f,  1.0f,  1.0f, 0.0f, 0.0f),
-		VertexType(-1.0f,  1.0f, -1.0f, 1.0f, 0.0f),
-		VertexType(-1.0f, -1.0f, -1.0f, 1.0f, 1.0f),
+		VertexType(-1.0f, -1.0f,  1.0f, 0.0f, 1.0f,1.0f,1.0f,1.0f),
+		VertexType(-1.0f,  1.0f,  1.0f, 0.0f, 0.0f,1.0f,1.0f,1.0f),
+		VertexType(-1.0f,  1.0f, -1.0f, 1.0f, 0.0f,1.0f,1.0f,1.0f),
+		VertexType(-1.0f, -1.0f, -1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f),
 
 		// Right Face
-		VertexType(1.0f, -1.0f, -1.0f, 0.0f, 1.0f),
-		VertexType(1.0f,  1.0f, -1.0f, 0.0f, 0.0f),
-		VertexType(1.0f,  1.0f,  1.0f, 1.0f, 0.0f),
-		VertexType(1.0f, -1.0f,  1.0f, 1.0f, 1.0f),
+		VertexType(1.0f, -1.0f, -1.0f, 0.0f, 1.0f,1.0f,1.0f,1.0f),
+		VertexType(1.0f,  1.0f, -1.0f, 0.0f, 0.0f,1.0f,1.0f,1.0f),
+		VertexType(1.0f,  1.0f,  1.0f, 1.0f, 0.0f,1.0f,1.0f,1.0f),
+		VertexType(1.0f, -1.0f,  1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f),
 
 	};
 	vertexCount = sizeof(vertices)/sizeof(VertexType);
 	
+	vector<XMFLOAT3> vertPosArray;
 
+
+
+	CreateBoundingVolumes(vertPosArray, cubeBoundingBoxVertPosArray, cubeBoundingBoxVertIndexArray, cubeBoundingSphere, cubeCenterOffset);
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexBufferDesc.ByteWidth = sizeof(VertexType) * vertexCount;
@@ -417,12 +707,13 @@ void updateCube(double time) {
 	}
 	camPosition.y = 3.f;
 	camPosition.z = -15.f;
-	
+	camRotation.y = 45.0f;
+
 	cubeX += 7.f * time;
 	settingCamera();
 	XMVECTOR rotaxis = XMVectorSet(0.0f, .0f, 1.0f, 0.0f);
 	///
-	camPosition.x = cubeX;
+	camPosition.x = cubeX - 7.f;
 	
 	if (isRotate) {
 		rot += 1.5708f * time * 4.f;
@@ -459,6 +750,12 @@ void updateCube(double time) {
 
 	cubeWorld = Rotation * Scale * Translation ;
 
+
+	cubeFloorWorld = XMMatrixIdentity();
+	Scale = XMMatrixScaling(20.f, 0.5f, 3.0f);
+	Translation = XMMatrixTranslation(cubeX+15.0f, -1.0f, 0.f);
+	cubeFloorWorld = Scale*Translation;
+
 }
 void drawCube() {
 
@@ -472,10 +769,24 @@ void drawCube() {
 
 	WVP = cubeWorld * camView * camProjection;
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
-
+	cbPerObj.World = XMMatrixTranspose(cubeWorld);
 	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
 	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
 
+	dx->getDevContext()->RSSetState(CWcullMode);
+	dx->getDevContext()->DrawIndexed(indexCount, 0, 0);
+
+
+	
+	dx->getDevContext()->IASetVertexBuffers(0, 1, &CubeVertexBuffer, &stride, &offset);
+	dx->getDevContext()->IASetIndexBuffer(CubeIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	dx->getDevContext()->PSSetShaderResources(0, 1, &bgtextureView);
+	dx->getDevContext()->PSSetSamplers(0, 1, &BgTexSamplerState);
+	WVP = cubeFloorWorld * camView * camProjection;
+	cbPerObj.WVP = XMMatrixTranspose(WVP);
+	cbPerObj.World = XMMatrixTranspose(cubeFloorWorld);
+	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
+	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
 
 	dx->getDevContext()->RSSetState(CWcullMode);
 	dx->getDevContext()->DrawIndexed(indexCount, 0, 0);
@@ -485,10 +796,10 @@ void drawCube() {
 bool InitializeCircle() {
 	VertexType vertices[] = {
 		// Front Face
-		VertexType(-1.0f, -1.0f, -1.0f, 0.0f, 1.0f),
-		VertexType(-1.0f,  1.0f, -1.0f, 0.0f, 0.0f),
-		VertexType(1.0f,  1.0f, -1.0f, 1.0f, 0.0f),
-		VertexType(1.0f, -1.0f, -1.0f, 1.0f, 1.0f),
+		VertexType(-1.0f, -1.0f, -1.0f, 0.0f, 1.0f,1.0f,1.0f,1.0f),
+		VertexType(-1.0f,  1.0f, -1.0f, 0.0f, 0.0f,1.0f,1.0f,1.0f),
+		VertexType(1.0f,  1.0f, -1.0f, 1.0f, 0.0f,1.0f,1.0f,1.0f),
+		VertexType(1.0f, -1.0f, -1.0f, 1.0f, 1.0f,1.0f,1.0f,1.0f),
 
 	};
 	int bgvertexCount = sizeof(vertices) / sizeof(VertexType);
@@ -565,108 +876,15 @@ void drawCircle() {
 	dx->getDevContext()->PSSetSamplers(0, 1, &BgTexSamplerState);
 
 	WVP = bgWorld * camView * camProjection;
+	cbPerObj.World = XMMatrixTranspose(circleWorld);
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
 
 	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
 	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
-
-	dx->getDevContext()->RSSetState(noCull);
-	dx->getDevContext()->DrawIndexed(6, 0, 0);
-}
-
-
-bool InitializeBg() {
-	VertexType vertices[] = {
-		// Front Face
-		VertexType(-1.0f, -1.0f, -1.0f, 0.0f, 1.0f),
-		VertexType(-1.0f,  1.0f, -1.0f, 0.0f, 0.0f),
-		VertexType(1.0f,  1.0f, -1.0f, 1.0f, 0.0f),
-		VertexType(1.0f, -1.0f, -1.0f, 1.0f, 1.0f),
-
-	};
-	int bgvertexCount = sizeof(vertices) / sizeof(VertexType);
-
-
-	D3D11_BUFFER_DESC vertexBufferDesc;
-	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(VertexType) * bgvertexCount;
-	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufferDesc.CPUAccessFlags = 0;
-	vertexBufferDesc.MiscFlags = 0;
-	vertexBufferDesc.StructureByteStride = 0;
-
-	// subresource 구조에 정점 데이터에 대한 포인터를 제공합니다.
-	D3D11_SUBRESOURCE_DATA vertexData;
-	vertexData.pSysMem = vertices;
-	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
-	// 이제 정점 버퍼를 만듭니다.
-	if (FAILED(dx->getDevice()->CreateBuffer(&vertexBufferDesc, &vertexData, &backgroundVertexBuffer)))
-	{
-		return false;
-	}
-
-	DWORD indices[] = {
-		// Front Face
-		0,  1,  2,
-		0,  2,  3,
-	};
-	int bgindexCount = sizeof(indices) / sizeof(DWORD);
-
-	// 정적 인덱스 버퍼의 구조체를 설정합니다.
-	D3D11_BUFFER_DESC indexBufferDesc;
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(unsigned long) * bgindexCount;
-	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indexBufferDesc.CPUAccessFlags = 0;
-	indexBufferDesc.MiscFlags = 0;
-	indexBufferDesc.StructureByteStride = 0;
-
-	// 인덱스 데이터를 가리키는 보조 리소스 구조체를 작성합니다.
-	D3D11_SUBRESOURCE_DATA indexData;
-	indexData.pSysMem = indices;
-	indexData.SysMemPitch = 0;
-	indexData.SysMemSlicePitch = 0;
-
-	// 인덱스 버퍼를 생성합니다.
-	if (FAILED(dx->getDevice()->CreateBuffer(&indexBufferDesc, &indexData, &backgroundIndexBuffer)))
-	{
-		return false;
-	}
-	return true;
-}
-int aa = 0;
-void updateBg() {
-	aa += 3.f;
-	XMVECTOR rotaxis = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-	bgWorld = XMMatrixIdentity();
-	Rotation = XMMatrixRotationAxis(rotaxis, 0);
-	Scale = XMMatrixScaling(0.5f, 0.5f, 0.5f);
-	Translation = XMMatrixTranslation(cubeX + 3.0f, 0.f, 0.f);
-
-	bgWorld = Rotation * Scale * Translation;
-}
-void drawBg() {
-	updateBg();
 	
-	UINT stride = sizeof(VertexType);
-	UINT offset = 0;
-	dx->getDevContext()->IASetVertexBuffers(0, 1, &backgroundVertexBuffer, &stride, &offset);
-	dx->getDevContext()->IASetIndexBuffer(backgroundIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	dx->getDevContext()->PSSetShaderResources(0u, 1u, &bgtextureView);
-	dx->getDevContext()->PSSetSamplers(0, 1, &BgTexSamplerState);
-
-	WVP = bgWorld * camView * camProjection;
-	cbPerObj.WVP = XMMatrixTranspose(WVP);
-
-	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
-	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
-
 	dx->getDevContext()->RSSetState(noCull);
 	dx->getDevContext()->DrawIndexed(6, 0, 0);
 }
-
 
 bool LoadTarga(char* name) {
 
@@ -711,27 +929,9 @@ bool LoadTarga(char* name) {
 	return true;
 }
 
-#include "DDSTextureLoader11.h"
+#include "DDSTextureLoader.h"
 
-ID3D11Resource* skytexture;
-ID3D11ShaderResourceView* skyRV;
-const wchar_t* fileName = (wchar_t*)"skymap.dds";
 
-bool loadDDS() {
-	HRESULT hr;
-	hr = CreateDDSTextureFromFile(dx->getDevice(),fileName, nullptr, &skyRV);
-	return true;
-}
-bool InitializeTextrue() {
-	ID3D11Texture2D* SMTexture = 0;
-	wstring ws = to_wstring(texheight);
-	LPCWSTR lp = ws.c_str();
-	if (!loadDDS()) {
-		return false;
-	}
-
-	return true;
-}
 bool InitializeTexture() {
 	//InitializeTextrue();
 	D3D11_TEXTURE2D_DESC textureDesc;
@@ -765,7 +965,6 @@ bool InitializeTexture() {
 		return false;
 	}
 
-
 	// Set the row pitch of the targa image data.
 	rowPitch = (texwidth * 4) * sizeof(unsigned char);
 
@@ -777,8 +976,6 @@ bool InitializeTexture() {
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	srvDesc.Texture2D.MipLevels = 1;
-
-
 
 	// Create the shader resource view for the texture.
 	hResult = dx->getDevice()->CreateShaderResourceView(cubeTexture, &srvDesc, &cubetextureView);
@@ -811,61 +1008,15 @@ bool InitializeTexture() {
 	rowPitch = NULL;
 	ZeroMemory(&srvDesc, sizeof(srvDesc));
 
-	if (!LoadTarga((char*)"backGround.tga")) {
-		return false;
-	}
+	
 
-	// Setup the description of the texture.
-	textureDesc.Height = texheight;
-	textureDesc.Width = texwidth;
-	textureDesc.MipLevels = 1;
-	textureDesc.ArraySize = 1;
-	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	textureDesc.SampleDesc.Count = 1;
-	textureDesc.SampleDesc.Quality = 0;
-	textureDesc.Usage = D3D11_USAGE_DEFAULT;
-	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-	textureDesc.CPUAccessFlags = 0;
-	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
-
-	// Create the empty texture.
-	hResult = dx->getDevice()->CreateTexture2D(&textureDesc, NULL, &bgTexture);
-	if (FAILED(hResult))
-	{
-		return false;
-	}
-	// Set the row pitch of the targa image data.
-	rowPitch = (texwidth * 4) * sizeof(unsigned char);
-
-	// Copy the targa image data into the texture.
-	dx->getDevContext()->UpdateSubresource(bgTexture, 0, NULL, targaData, rowPitch, 0);
-
-	// Setup the shader resource view description.
-	srvDesc.Format = textureDesc.Format;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = 1;
-
-	// Create the shader resource view for the texture.
-	hResult = dx->getDevice()->CreateShaderResourceView(bgTexture, &srvDesc, &bgtextureView);
-	if (FAILED(hResult))
-	{
-		return false;
-	}
-
-	// Generate mipmaps for this texture.
-	dx->getDevContext()->GenerateMips(bgtextureView);
-
-	// Release the targa image data now that the image data has been loaded into the texture.
-	delete[] targaData;
-	targaData = 0;
-
-
+	CreateDDSTextureFromFile(dx->getDevice(), L"grass.dds", NULL, &bgtextureView);
+	
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
-	sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_MIRROR;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_MIRROR;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_MIRROR;
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
@@ -876,6 +1027,9 @@ bool InitializeTexture() {
 
 bool InitializeShader() {
 	
+	light.dir = XMFLOAT3(0.25f, 0.5f, -1.0f);
+	light.ambient = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+	light.diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -884,18 +1038,27 @@ bool InitializeShader() {
 	
 	InitializeCube();
 	InitializeTriangle();
-	InitializeBg();
 	// Initialize the pointers this function will use to null.
 	errorMessage = 0;
 	vertexShaderBuffer = 0;
 	pixelShaderBuffer = 0;
 
 	// Compile the vertex shader code.
-	D3DCompileFromFile(L"effects.fx", NULL, NULL, "VS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+	D3DCompileFromFile(L"eff.fx", NULL, NULL, "VS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
 		&vertexShaderBuffer, &errorMessage);
 
-	D3DCompileFromFile(L"effects.fx", NULL, NULL, "PS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+	D3DCompileFromFile(L"eff.fx", NULL, NULL, "PS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
 		&pixelShaderBuffer, &errorMessage);
+
+	D3DCompileFromFile(L"eff.fx", NULL, NULL, "D2D_PS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+		&D2D_PS_Buffer, &errorMessage);
+
+	D3DCompileFromFile(L"eff.fx", NULL, NULL, "SKYMAP_VS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+		&SKYMAP_VS_Buffer, &errorMessage);
+
+	D3DCompileFromFile(L"eff.fx", NULL, NULL, "SKYMAP_PS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+		&SKYMAP_PS_Buffer, &errorMessage);
+
 
 
 	// Create the vertex shader from the buffer.
@@ -913,6 +1076,16 @@ bool InitializeShader() {
 		MessageBox(hwnd, L"Could not create the pixel shader object.", L"Error", MB_OK);
 		return false;
 	}
+
+	result = dx->getDevice()->CreatePixelShader(D2D_PS_Buffer->GetBufferPointer(), D2D_PS_Buffer->GetBufferSize(), NULL, &D2D_PS);
+	if (FAILED(result))
+	{
+		MessageBox(hwnd, L"Could not create the pixel shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	dx->getDevice()->CreateVertexShader(SKYMAP_VS_Buffer->GetBufferPointer(), SKYMAP_VS_Buffer->GetBufferSize(), NULL, &SKYMAP_VS);
+	dx->getDevice()->CreatePixelShader(SKYMAP_PS_Buffer->GetBufferPointer(), SKYMAP_PS_Buffer->GetBufferSize(), NULL, &SKYMAP_PS);
 
 	// Create the vertex input layout.
 	result = dx->getDevice()->CreateInputLayout(Playout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &layout);
@@ -944,6 +1117,14 @@ bool InitializeShader() {
 		MessageBox(hwnd, L"Could not create the cbPerObjectBuffer object.", L"Error", MB_OK);
 		return false;
 	}
+
+	ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
+	cbbd.Usage = D3D11_USAGE_DEFAULT;
+	cbbd.ByteWidth = sizeof(cbPerFrame);
+	cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbbd.CPUAccessFlags = 0;
+	cbbd.MiscFlags = 0;
+	dx->getDevice()->CreateBuffer(&cbbd, NULL, &cbPerFrameBuffer);
 
 	D3D11_BLEND_DESC blendDesc;
 	ZeroMemory(&blendDesc, sizeof(blendDesc));
@@ -981,12 +1162,39 @@ bool InitializeShader() {
 	ZeroMemory(&rastDesc, sizeof(rastDesc));
 	rastDesc.FillMode = D3D11_FILL_SOLID;
 	rastDesc.CullMode = D3D11_CULL_NONE;
+	rastDesc.MultisampleEnable = TRUE;
+	
 
 	dx->getDevice()->CreateRasterizerState(&rastDesc, &noCull);
-	
+
+	cmdesc.CullMode = D3D11_CULL_NONE;
+	dx->getDevice()->CreateRasterizerState(&cmdesc, &RSCullNone);
+
+	D3D11_DEPTH_STENCIL_DESC dssDesc;
+	ZeroMemory(&dssDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
+	dssDesc.DepthEnable = true;
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dssDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+
+	dx->getDevice()->CreateDepthStencilState(&dssDesc, &DSLessEqual);
+
+	CreateDDSTextureFromFile(dx->getDevice(), L"skymap.dds", NULL, &smrv);
+
 	InitializeTexture();
 	InitD2DScreenTexture();
 
+	/*
+	result = D3DCompileFromFile(L"effects.fx", NULL, NULL, "SKYMAP_VS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+		&SKYMAP_VS_Buffer, &errorMessage);
+	result = D3DCompileFromFile(L"effects.fx", NULL, NULL, "SKYMAP_PS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
+		&SKYMAP_PS_Buffer, &errorMessage);
+
+	result = dx->getDevice()->CreateVertexShader(SKYMAP_VS_Buffer->GetBufferPointer(), SKYMAP_VS_Buffer->GetBufferSize(), NULL, &SKYMAP_VS);
+	result = dx->getDevice()->CreatePixelShader(SKYMAP_PS_Buffer->GetBufferPointer(), SKYMAP_PS_Buffer->GetBufferSize(), NULL, &SKYMAP_PS);
+
+
+	CreateDDSTextureFromFile(dx->getDevice(), L"skymap.dds", nullptr, &smrv);
+	*/
 
 	return true;
 
@@ -1108,8 +1316,20 @@ void ReleaseObjects() {
 	CubesTexSamplerState->Release();
 
 	cbPerObjectBuffer->Release();
+	cbPerFrameBuffer->Release();
 
+	sphereIndexBuffer->Release();
+	sphereVertBuffer->Release();
 
+	SKYMAP_VS->Release();
+	SKYMAP_PS->Release();
+	SKYMAP_VS_Buffer->Release();
+	SKYMAP_PS_Buffer->Release();
+
+	smrv->Release();
+
+	DSLessEqual->Release();
+	RSCullNone->Release();
 }
 
 
@@ -1117,9 +1337,15 @@ void ReleaseObjects() {
 void UpdateScene(double time) {
 	updateCube(time);
 
+	sphereWorld = XMMatrixIdentity();
+	Scale = XMMatrixScaling(5.0f, 5.0f, 5.0f);
+	Translation = XMMatrixTranslation(camPosition.x, camPosition.y, camPosition.z);
+	sphereWorld = Scale * Translation;
 }
 
 void DrawScene() {
+
+	CreateSphere(10, 10);
 
 	dx->DXBeginScene();
 	
@@ -1138,10 +1364,35 @@ void DrawScene() {
 	//Render Opaque objects
 	dx->getDevContext()->OMSetBlendState(Transparency, blendFactor, 0xffffffff);
 
-	drawBg();
+	constbuffPerFrame.light = light;
+	dx->getDevContext()->UpdateSubresource(cbPerFrameBuffer, 0, NULL, &constbuffPerFrame, 0, 0);
+	dx->getDevContext()->PSSetConstantBuffers(0, 1, &cbPerFrameBuffer);
+
 	drawCube();
 	drawTriangle();
 	drawCircle();
+
+	UINT stride = sizeof(VertexType);
+	UINT offset = 0;
+	dx->getDevContext()->IASetIndexBuffer(sphereIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	dx->getDevContext()->IASetVertexBuffers(0, 1, &sphereVertBuffer, &stride, &offset);
+
+	WVP = sphereWorld * camView * camProjection;
+	cbPerObj.WVP = XMMatrixTranspose(WVP);
+	cbPerObj.World = XMMatrixTranspose(sphereWorld);
+	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
+	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+	dx->getDevContext()->PSSetShaderResources(0, 1, &smrv);
+	dx->getDevContext()->PSSetSamplers(0, 1, &CubesTexSamplerState);
+
+	dx->getDevContext()->VSSetShader(SKYMAP_VS, 0, 0);
+	dx->getDevContext()->PSSetShader(SKYMAP_PS, 0, 0);
+	dx->getDevContext()->OMSetDepthStencilState(DSLessEqual, 0);
+	dx->getDevContext()->RSSetState(RSCullNone);
+	dx->getDevContext()->DrawIndexed(NumSphereFaces * 3, 0, 0);
+
+	dx->getDevContext()->OMSetDepthStencilState(NULL, 0);
+
 
 	float time2 = total_game_time * 0.001f;
 	wstring ws = to_wstring(time2);
@@ -1151,6 +1402,7 @@ void DrawScene() {
 	dx->getDevContext()->OMSetBlendState(Transparency, NULL, 0xffffffff);
 	WVP = XMMatrixIdentity();
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
+	cbPerObj.World = XMMatrixTranspose(WVP);
 	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
 	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
 	dx->getDevContext()->PSSetSamplers(0, 1, &CubesTexSamplerState);
@@ -1162,6 +1414,7 @@ void DrawScene() {
 	dx->getDevContext()->OMSetBlendState(Transparency, NULL, 0xffffffff);
 	WVP = XMMatrixIdentity();
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
+	cbPerObj.World = XMMatrixTranspose(WVP);
 	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
 	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
 	dx->getDevContext()->PSSetSamplers(0, 1, &CubesTexSamplerState);
@@ -1174,6 +1427,7 @@ void DrawScene() {
 	dx->getDevContext()->OMSetBlendState(Transparency, NULL, 0xffffffff);
 	WVP = XMMatrixIdentity();
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
+	cbPerObj.World = XMMatrixTranspose(WVP);
 	dx->getDevContext()->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
 	dx->getDevContext()->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
 	dx->getDevContext()->PSSetSamplers(0, 1, &CubesTexSamplerState);
