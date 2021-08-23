@@ -1,7 +1,7 @@
 ## 개발일지
 
 <details>
-<summary>2021.08.06</summary>
+<summary><span style = " font-size:1.5em;  color: green;">2021.08.06</span></summary>
 <div markdown="1">
 
   뿅하면 만들어지는 유니티, 언리얼과 다르게 창을 만드는 것부터 아니 프로젝트를 세팅하는 것부터 많은 고난이 있었다...<br>
