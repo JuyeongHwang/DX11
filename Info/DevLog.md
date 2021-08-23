@@ -42,7 +42,6 @@
 </div>
 </details>
 
-### 2021.08.10
 <details>
 <summary>2021.08.10</summary>
 <div markdown="1">
@@ -71,10 +70,10 @@ https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-dxgi
 	
 	
 	
-	
-	
 
-### 2021.08.11
+<details>
+<summary>2021.08.11</summary>
+<div markdown="1">
 
 <b>카메라 & 큐브 점프 및 움직이기</b> <br>
 <img src="https://user-images.githubusercontent.com/49023736/128961176-46216515-b1b9-4398-b8f1-2442af54a443.gif" width="30%" height="30%" />
@@ -87,7 +86,13 @@ https://docs.microsoft.com/en-us/windows/win32/direct3dgetstarted/work-with-dxgi
 https://www.braynzarsoft.net/viewtutorial/q16390-directx-11-an-introduction-to-the-win32-api
 이 예제도 한번 따라해봐야겠다
 
-### 2021.08.12
+</div>
+</details>
+
+
+<details>
+<summary>2021.08.12</summary>
+<div markdown="1">
 
 <b>텍스쳐 입히기</b> <br>
 https://user-images.githubusercontent.com/49023736/129129691-ac31f730-9d05-4d87-a171-17c7f9e03583.mp4
@@ -101,7 +106,12 @@ https://user-images.githubusercontent.com/49023736/129129691-ac31f730-9d05-4d87-
 위에 예제 사이트가 훨씬 이해하기 쉬웠다. 코드가 길어지면, 당연히 [0]보다는 가독성은 떨어지겠지만 처음 공부하는 입장에서 보면, 진행 과정을 따라 쭉 나열하고 있기 때문에 순서를 파악하기 좋았다!
 그리고 개인적으로 느낀점인데 directX가 어려운 이유는 대충 깔짝이면서 공부하는건 불가능하기 때문이 아닐까..싶다 학교에서 opengl도 안배운 상태였다면 진작에 그만 뒀을것같다.
 
-### 2021.08.13
+</div>
+</details>
+	
+<details>
+<summary>2021.08.13</summary>
+<div markdown="1">
 
 <img src="https://user-images.githubusercontent.com/49023736/129440608-ece2b778-29bd-4263-a2d5-427a8203bf96.png" width="50%" height="40%" />
 
@@ -126,10 +136,15 @@ D3D11_APPEND_ALIGNED_ELEMENT<=를 이용해서 자동으로 할당할수도 있�
 
 <img src="https://user-images.githubusercontent.com/49023736/129440611-39637f64-04e3-4fa4-8b9a-d578043ed7ae.png" width="50%" height="40%" />
 
+
+</div>
+</details>
+
 ----------------------------------------------------------
 
-### 2021.08.14-15
-
+<details>
+<summary>2021.08.14-15</summary>
+<div markdown="1">
 화면 생성부터 물체 이동까지
 
 ![image](https://user-images.githubusercontent.com/49023736/129452030-66edead9-e4b4-4057-98ae-7bd79239547f.png)
@@ -151,11 +166,16 @@ D3D11_APPEND_ALIGNED_ELEMENT<=를 이용해서 자동으로 할당할수도 있�
 
 ![image](https://user-images.githubusercontent.com/49023736/129474379-d5a36e77-4b28-4995-bacb-b59f5d116c58.png)
 
+</div>
+</details>
+
 ### 2021.08.17
  전반적인 내용을 이해하는데도 오랜 시간이 걸렸는데 세세한 내용까지 공부하려니 머리가 터질것같다.
- 
- ### 2021.08.18
- 
+	
+<details>
+<summary>2021.08.18 RST</summary>
+<div markdown="1">
+	 
  셰이더 버퍼와 버텍스 인덱스 버퍼를 혼동하지 말자~!!!
  
  <img src="https://user-images.githubusercontent.com/49023736/129826572-c135e14a-533a-4aeb-8fb1-205e28296c1b.gif" width="50%" height="40%" />
@@ -170,12 +190,17 @@ RT와 TR의 중요성..ㅋㅋㅋㅋ
 Rotation * Scale * Translation ;
 
 
+</div>
+</details>
+
+
 ### 2021.08.20
 주말동안 1. 배경 만들기 2. 캐릭터 만들기 3. 콜라이더 만들기 4. 충돌 구현 5. 게임 전반적인 구조(텍스쳐등) 만들기
 우선 단순하게 점프로 피하는 수준만 구현하기.
 
-### 2021.08.23
-
+<details>
+<summary>2021.08.23 가이드라인 초안</summary>
+<div markdown="1">
 ## [간단한 가이드라인]
 
 ## 01. 초기화
@@ -204,6 +229,10 @@ CreateDepthStencilView()
 7. CreateBlendState()
 
 ### 01 -4 directInput 초기화
-
 ## 02. 게임 진행
+</div>
+</details>
+
+
+
 
