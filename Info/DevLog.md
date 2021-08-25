@@ -235,4 +235,27 @@ CreateDepthStencilView()
 
 
 
+	
+	
+<details>
+<summary>2021.08.25 오류와 진행사항</summary>
+<div markdown="1">
+	 
+entrypoint 오류
+<img src="https://user-images.githubusercontent.com/49023736/130717976-c1ea6949-c666-418c-8c4a-76775e1291af.png" width="50%" height="40%" />
+
+XMMatrix - () operator not working
+
+PRVecX = (((2.0f * mouseX) / ClientWidth) - 1) / camProjection(0,0);
+	
+https://stackoverflow.com/questions/17475929/access-floats-of-xmmatrix-operator-not-working/28296638
+
+
+https://user-images.githubusercontent.com/49023736/130718452-d04147e9-b2fa-4b42-b45a-e4393659afae.mp4
+
+
+</div>
+</details>
+
+	
 
