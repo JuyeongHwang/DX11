@@ -78,8 +78,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\jiwoo\Desktop\Ludens\Ludens\directxdk\Inc;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\jiwoo\Desktop\Ludens\Ludens\directxdk\Libs\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\jiwoo\Desktop\dk\code\Ludens\Ludens\directxdk\Inc;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\jiwoo\Desktop\dk\code\Ludens\Ludens\directxdk\Libs\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>

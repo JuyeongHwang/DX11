@@ -2386,11 +2386,12 @@ bool InitScene()
 
 	CreateSphere(10, 10);
 
-	if(!LoadObjModel(L"ground.obj", &meshVertBuff, &meshIndexBuff, meshSubsetIndexStart, meshSubsetTexture, material, meshSubsets, true, true, groundVertPosArray, groundVertIndexArray))
-		return false;	
-	if(!LoadObjModel(L"bottle.obj", &bottleVertBuff, &bottleIndexBuff, bottleSubsetIndexStart, bottleSubsetTexture, material, bottleSubsets, true, true, bottleVertPosArray, bottleVertIndexArray))
+	//if (!LoadObjModel(L"ground.obj", &meshVertBuff, &meshIndexBuff, meshSubsetIndexStart, meshSubsetTexture, material, meshSubsets, true, true, groundVertPosArray, groundVertIndexArray))
 		return false;
 
+	if (!LoadObjModel(L"slime.obj", &bottleVertBuff, &bottleIndexBuff, bottleSubsetIndexStart, bottleSubsetTexture, material, bottleSubsets, true, true, bottleVertPosArray, bottleVertIndexArray))
+		return false;
+	
 	// Get bounding volume information
 	CreateBoundingVolumes(bottleVertPosArray, bottleBoundingBoxVertPosArray, bottleBoundingBoxVertIndexArray, bottleBoundingSphere, bottleCenterOffset);
 
