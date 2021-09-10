@@ -40,6 +40,6 @@
 <br>
 
 [T1] http://bth.diva-portal.org/smash/get/diva2:832789/FULLTEXT01.pdf <br>
-
+[T2] http://3dapi.com/blc/ <br>
 https://www.youtube.com/watch?v=NYQ1-XfopFw&list=PLcacUGyBsOIBlGyQQWzp6D1Xn6ZENx9Y2&index=3<br>
 http://www.directxtutorial.com/LessonList.aspx?listid=11 , 
