@@ -20,6 +20,20 @@
 ##### [<개발 일지>](https://github.com/JuyeongHwang/DX11/blob/main/Info/DevLog.md)
 
 
+#### <결과>
+
+조작
+A : 왼쪽 이동
+D : 오른쪽 이동
+마우스 왼쪽 키 : 총알 발사
+
+게임 목표 : 앞에 생성되는 병 맞추기
+
+https://user-images.githubusercontent.com/49023736/133183851-86c2bfe3-3538-4097-88c5-327ee0e688af.mp4
+
+
+
+
 #### 참고 도서
 
 [b0] 3D 게임 프로그래밍 입문 <br>
