@@ -57,3 +57,4 @@ https://user-images.githubusercontent.com/49023736/133183851-86c2bfe3-3538-4097-
 [T2] http://3dapi.com/blc/ <br>
 https://www.youtube.com/watch?v=NYQ1-XfopFw&list=PLcacUGyBsOIBlGyQQWzp6D1Xn6ZENx9Y2&index=3<br>
 http://www.directxtutorial.com/LessonList.aspx?listid=11 , 
+https://www.braynzarsoft.net/viewtutorial/q16390-braynzar-soft-directx-11-tutorials
